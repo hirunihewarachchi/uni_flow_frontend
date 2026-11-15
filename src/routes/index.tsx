@@ -23,6 +23,7 @@ import ForgotPassword from "../pages/ForgetPassword";
 import Marketing from "../pages/MarketingDep";
 import Academic from "../pages/AcademicDep";
 import FinanceDep from "../pages/FinanceDep";
+import Admin from "../pages/Admin";
 
 function AppRoutes() {
   return (
@@ -40,6 +41,9 @@ function AppRoutes() {
           <Route path="/courses" element={<Course />} />
           <Route path="/departments" element={<Department />} />
           <Route path="/enrollment" element={<Enrollment />} />
+
+        {/* Admin Layout */}
+          <Route path="/admin" element={<Admin />} />
 
           {/* Department Routes */}
           <Route path="/marketing" element={<Marketing />} />

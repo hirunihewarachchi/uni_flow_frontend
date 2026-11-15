@@ -15,7 +15,6 @@ import {
   Wallet,
   Award,
   LogIn,
-  UserPlus,
   LogOut,
   UserRound,
 } from "lucide-react";
@@ -225,9 +224,9 @@ function Sidebar({
 
             {renderMenu([
               {
-                title: "Enrollment Requests",
-                path: "/enrollment-requests",
-                icon: Users,
+                title: "Admin Management",
+                path: "/admin",
+                icon: Building2,
               },
             ])}
           </div>
@@ -294,7 +293,7 @@ function Sidebar({
             </button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
 
             {/* Sign In */}
             <NavLink
@@ -303,15 +302,6 @@ function Sidebar({
             >
               <LogIn size={18} />
               Sign In
-            </NavLink>
-
-            {/* Create Account */}
-            <NavLink
-              to="/signup"
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10"
-            >
-              <UserPlus size={18} />
-              Create Account
             </NavLink>
 
             {/* Join IJSE */}
@@ -327,7 +317,7 @@ function Sidebar({
                   </p>
 
                   <p className="mt-1 text-[10px] text-[#737373]">
-                    Access your student portal
+                    Contact our Marketing Department
                   </p>
                 </div>
               </div>
