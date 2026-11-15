@@ -20,7 +20,12 @@ import {
   UserRound,
 } from "lucide-react";
 
-type UserRole = "STUDENT" | "MARKETING" | "ADMIN";
+type UserRole =
+  | "STUDENT"
+  | "MARKETING"
+  | "ACADEMIC"
+  | "FINANCE"
+  | "ADMIN";
 
 interface SidebarProps {
   isAuthenticated?: boolean;
@@ -63,12 +68,14 @@ const aiMenu: MenuItem[] = [
 function Sidebar({
   isAuthenticated = false,
   userRole = null,
-  userName = "IJSE Student",
+  userName = "IJSE Member",
 }: SidebarProps) {
   const navigate = useNavigate();
 
   const isStudent = isAuthenticated && userRole === "STUDENT";
   const isMarketing = isAuthenticated && userRole === "MARKETING";
+  const isAcademic = isAuthenticated && userRole === "ACADEMIC";
+  const isFinance = isAuthenticated && userRole === "FINANCE";
   const isAdmin = isAuthenticated && userRole === "ADMIN";
 
   // Render navigation links
@@ -123,17 +130,17 @@ function Sidebar({
   const getRoleName = () => {
     if (isStudent) return "Student Portal";
     if (isMarketing) return "Marketing Portal";
+    if (isAcademic) return "Academic Portal";
+    if (isFinance) return "Finance Portal";
     if (isAdmin) return "Administration";
+
     return "IJSE Member";
   };
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[#171717] text-white">
 
-      {/* ================================= */}
       {/* BRANDING */}
-      {/* ================================= */}
-
       <div className="shrink-0 border-b border-white/10 px-6 py-7">
         <h1 className="text-4xl font-black tracking-wider">
           IJSE<span className="text-[#D71920]">.</span>
@@ -146,10 +153,7 @@ function Sidebar({
         </p>
       </div>
 
-      {/* ================================= */}
       {/* NAVIGATION */}
-      {/* ================================= */}
-
       <nav className="min-h-0 flex-1 space-y-7 overflow-y-auto px-4 py-7">
 
         {/* Institute */}
@@ -170,9 +174,43 @@ function Sidebar({
 
             {renderMenu([
               {
-                title: "Enrollment Requests",
-                path: "/enrollment-requests",
+                title: "Marketing Management",
+                path: "/marketing",
                 icon: Users,
+              },
+            ])}
+          </div>
+        )}
+
+        {/* Academic Department */}
+        {isAcademic && (
+          <div className="space-y-2">
+            <p className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#737373]">
+              Academic Department
+            </p>
+
+            {renderMenu([
+              {
+                title: "Academic Management",
+                path: "/academic",
+                icon: GraduationCap,
+              },
+            ])}
+          </div>
+        )}
+
+        {/* Finance Department */}
+        {isFinance && (
+          <div className="space-y-2">
+            <p className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#737373]">
+              Finance Department
+            </p>
+
+            {renderMenu([
+              {
+                title: "Finance Management",
+                path: "/finance-management",
+                icon: Wallet,
               },
             ])}
           </div>
@@ -222,10 +260,7 @@ function Sidebar({
         )}
       </nav>
 
-      {/* ================================= */}
       {/* BOTTOM AUTHENTICATION SECTION */}
-      {/* ================================= */}
-
       <div className="shrink-0 border-t border-white/10 bg-[#171717] px-4 py-5">
 
         {isAuthenticated ? (
@@ -279,16 +314,11 @@ function Sidebar({
               Create Account
             </NavLink>
 
-            {/* Divider */}
+            {/* Join IJSE */}
             <div className="border-t border-white/10 pt-4">
-
-              {/* Join IJSE */}
               <div className="flex items-center gap-3 px-2">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D71920]/20">
-                  <GraduationCap
-                    size={22}
-                    className="text-[#D71920]"
-                  />
+                  <GraduationCap size={22} className="text-[#D71920]" />
                 </div>
 
                 <div>
