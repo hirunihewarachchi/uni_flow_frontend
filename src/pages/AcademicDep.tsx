@@ -1,22 +1,26 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Layers,
   CalendarDays,
   ClipboardCheck,
-  Users,
   Plus,
   Search,
   Clock,
   BookOpen,
   GraduationCap,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
   MoreVertical,
   X,
 } from "lucide-react";
+import {
+  getBatches,
+  createBatch,
+  getLectures,
+  createLecture,
+  getBatchStudents,
+  recordAttendance,
+} from "../services/academic.service";
 
 type Tab = "overview" | "batches" | "timetable" | "attendance" | "reports";
 
@@ -127,23 +131,24 @@ function AcademicDep() {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showLectureModal, setShowLectureModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBatch, setSelectedBatch] = useState("GDSE 75");
+  const [selectedBatch, setSelectedBatch] = useState("HDSE-75");
+  const [attendanceMsg, setAttendanceMsg] = useState("");
 
   const [batchForm, setBatchForm] = useState({
     name: "",
-    course: "Graduate Diploma in Software Engineering",
+    course: "Higher Diploma in Software Engineering",
     startDate: "",
     endDate: "",
   });
 
   const [lectureForm, setLectureForm] = useState({
-    batch: "GDSE 75",
+    batch: "HDSE-75",
     subject: "",
-    lecturer: "",
+    lecturer: "Mr. Niroth Samarawickrama",
     date: "",
-    startTime: "",
-    endTime: "",
-    room: "",
+    startTime: "09:00",
+    endTime: "12:00",
+    room: "Lab 01",
   });
 
   const navItems = [
@@ -154,6 +159,70 @@ function AcademicDep() {
     { id: "reports", label: "Reports", icon: BookOpen },
   ] as const;
 
+  const fetchAcademicData = async () => {
+    try {
+      const [batchRes, lecRes] = await Promise.allSettled([
+        getBatches(),
+        getLectures(),
+      ]);
+
+      if (batchRes.status === "fulfilled" && batchRes.value?.length) {
+        const mappedBatches: Batch[] = batchRes.value.map((b: any, idx: number) => ({
+          id: idx + 1,
+          name: b.batchNumber,
+          course: b.courseName || b.courseCode,
+          startDate: b.startDate,
+          endDate: b.endDate,
+          students: 0,
+          status: b.status === "ACTIVE" ? "ACTIVE" : "UPCOMING",
+        }));
+        setBatches(mappedBatches);
+        if (mappedBatches.length > 0 && !selectedBatch) {
+          setSelectedBatch(mappedBatches[0].name);
+        }
+      }
+
+      if (lecRes.status === "fulfilled" && lecRes.value?.length) {
+        const mappedLectures: Lecture[] = lecRes.value.map((l: any, idx: number) => ({
+          id: idx + 1,
+          batch: l.batchNumber,
+          subject: l.moduleName || l.moduleCode,
+          lecturer: l.lecturerName,
+          date: l.date,
+          startTime: l.startTime,
+          endTime: l.endTime,
+          room: l.hallNumber,
+        }));
+        setLectures(mappedLectures);
+      }
+    } catch (e) {}
+  };
+
+  const fetchBatchStudents = async (batchNo: string) => {
+    try {
+      const stuList = await getBatchStudents(batchNo);
+      if (stuList && stuList.length > 0) {
+        const mapped: Student[] = stuList.map((s: any, idx: number) => ({
+          id: idx + 1,
+          name: `${s.firstName} ${s.lastName}`.trim(),
+          studentId: s.studentId || s.registrationNumber || `STU-${idx + 1}`,
+          status: "PRESENT",
+        }));
+        setStudents(mapped);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchAcademicData();
+  }, []);
+
+  useEffect(() => {
+    if (selectedBatch) {
+      fetchBatchStudents(selectedBatch);
+    }
+  }, [selectedBatch]);
+
   const presentCount = students.filter((s) => s.status === "PRESENT").length;
   const absentCount = students.filter((s) => s.status === "ABSENT").length;
   const lateCount = students.filter((s) => s.status === "LATE").length;
@@ -162,47 +231,111 @@ function AcademicDep() {
     ? Math.round((presentCount / students.length) * 100)
     : 0;
 
-  const addBatch = (e: React.FormEvent) => {
+  const addBatch = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newBatch: Batch = {
-      id: Date.now(),
-      ...batchForm,
-      students: 0,
-      status: "UPCOMING",
-    };
+    try {
+      const code = batchForm.name.toUpperCase().startsWith("CMJD")
+        ? "CMJD"
+        : batchForm.name.toUpperCase().startsWith("CAME")
+        ? "CAME"
+        : "HDSE";
 
-    setBatches([...batches, newBatch]);
-    setShowBatchModal(false);
-    setBatchForm({
-      name: "",
-      course: "Graduate Diploma in Software Engineering",
-      startDate: "",
-      endDate: "",
-    });
+      await createBatch({
+        batchNumber: batchForm.name.trim(),
+        courseCode: code,
+        courseName: batchForm.course,
+        startDate: batchForm.startDate,
+        endDate: batchForm.endDate,
+        status: "ACTIVE",
+      });
+
+      const newBatch: Batch = {
+        id: Date.now(),
+        name: batchForm.name.trim(),
+        course: batchForm.course,
+        startDate: batchForm.startDate,
+        endDate: batchForm.endDate,
+        students: 0,
+        status: "ACTIVE",
+      };
+
+      setBatches([newBatch, ...batches]);
+      setShowBatchModal(false);
+      setBatchForm({
+        name: "",
+        course: "Higher Diploma in Software Engineering",
+        startDate: "",
+        endDate: "",
+      });
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to create batch");
+    }
   };
 
-  const addLecture = (e: React.FormEvent) => {
+  const addLecture = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setLectures([
-      ...lectures,
-      {
-        id: Date.now(),
-        ...lectureForm,
-      },
-    ]);
+    try {
+      await createLecture({
+        batchNumber: lectureForm.batch,
+        courseCode: lectureForm.batch.startsWith("CMJD") ? "CMJD" : "HDSE",
+        moduleCode: "PRF",
+        moduleName: lectureForm.subject,
+        lecturerId: "60c72b2f9b1d8b2bad000001",
+        lecturerName: lectureForm.lecturer,
+        hallNumber: lectureForm.room,
+        date: lectureForm.date,
+        startTime: lectureForm.startTime,
+        endTime: lectureForm.endTime,
+      });
 
-    setShowLectureModal(false);
-    setLectureForm({
-      batch: "GDSE 75",
-      subject: "",
-      lecturer: "",
-      date: "",
-      startTime: "",
-      endTime: "",
-      room: "",
-    });
+      const newLecture: Lecture = {
+        id: Date.now(),
+        batch: lectureForm.batch,
+        subject: lectureForm.subject,
+        lecturer: lectureForm.lecturer,
+        date: lectureForm.date,
+        startTime: lectureForm.startTime,
+        endTime: lectureForm.endTime,
+        room: lectureForm.room,
+      };
+
+      setLectures([newLecture, ...lectures]);
+      setShowLectureModal(false);
+      setLectureForm({
+        batch: selectedBatch || "HDSE-75",
+        subject: "",
+        lecturer: "Mr. Niroth Samarawickrama",
+        date: "",
+        startTime: "09:00",
+        endTime: "12:00",
+        room: "Lab 01",
+      });
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to schedule lecture");
+    }
+  };
+
+  const handleSaveAttendance = async () => {
+    try {
+      const records = students.map((s) => ({
+        studentId: s.studentId,
+        studentName: s.name,
+        status: s.status,
+      }));
+
+      await recordAttendance({
+        lectureScheduleId: "60c72b2f9b1d8b2bad000001",
+        batchNumber: selectedBatch,
+        records,
+      });
+
+      setAttendanceMsg("Attendance successfully recorded and saved to database!");
+      setTimeout(() => setAttendanceMsg(""), 4000);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to save attendance");
+    }
   };
 
   const updateAttendance = (id: number, status: Student["status"]) => {
@@ -696,11 +829,15 @@ function AcademicDep() {
             </table>
           </div>
 
+          {attendanceMsg && (
+            <div className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs font-semibold text-emerald-800">
+              {attendanceMsg}
+            </div>
+          )}
+
           <div className="mt-5 flex justify-end">
             <button
-              onClick={() =>
-                alert("Attendance saved in frontend sample data.")
-              }
+              onClick={handleSaveAttendance}
               className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
             >
               Save Attendance

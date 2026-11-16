@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Wallet,
   CreditCard,
@@ -11,9 +11,10 @@ import {
   ReceiptText,
   ShieldCheck,
   X,
-  Banknote,
   GraduationCap,
+  AlertTriangle,
 } from "lucide-react";
+import { getMyFinance, createOnlinePaymentSession, verifyPayment } from "../services/finance.service";
 
 type PlanType = "full" | "annual" | "semester";
 
@@ -60,28 +61,54 @@ const formatCurrency = (amount: number) =>
   `LKR ${amount.toLocaleString("en-US")}`;
 
 function Finance() {
-  const [selectedPlan, setSelectedPlan] =
-    useState<PlanType>("semester");
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>("semester");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [totalCourseFee, setTotalCourseFee] = useState(COURSE_FEE);
+  const [history, setHistory] = useState(paymentHistory);
+  const [warnings, setWarnings] = useState<any[]>([]);
+  const [payLoading, setPayLoading] = useState(false);
+  const [paySuccessMsg, setPaySuccessMsg] = useState("");
 
-  const [showPaymentModal, setShowPaymentModal] =
-    useState(false);
+  const fetchFinance = async () => {
+    try {
+      const data = await getMyFinance();
+      if (data?.schedule) {
+        setTotalCourseFee(data.schedule.totalFee || COURSE_FEE);
+      }
+      if (data?.transactions && data.transactions.length > 0) {
+        const mapped = data.transactions.map((tx: any, idx: number) => ({
+          id: tx.receiptNo || tx.reference || `PAY-00${idx + 1}`,
+          description: `${tx.method} Payment`,
+          date: tx.date || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : "2026-11-15"),
+          amount: tx.amount,
+          status: tx.status === "SUCCESS" ? "Paid" : tx.status,
+        }));
+        setHistory(mapped);
+      }
+      if (data?.warnings) {
+        setWarnings(data.warnings);
+      }
+    } catch (e) {}
+  };
 
-  const [showAllHistory, setShowAllHistory] =
-    useState(false);
+  useEffect(() => {
+    fetchFinance();
+  }, []);
 
   const selectedPlanDetails = paymentPlans.find(
     (plan) => plan.id === selectedPlan
   )!;
 
   const installmentAmount =
-    COURSE_FEE / selectedPlanDetails.installments;
+    totalCourseFee / selectedPlanDetails.installments;
 
-  const paidAmount = paymentHistory
+  const paidAmount = history
     .filter((payment) => payment.status === "Paid")
     .reduce((total, payment) => total + payment.amount, 0);
 
   const outstandingAmount = Math.max(
-    COURSE_FEE - paidAmount,
+    totalCourseFee - paidAmount,
     0
   );
 
@@ -91,13 +118,30 @@ function Finance() {
   );
 
   const paymentProgress = Math.min(
-    (paidAmount / COURSE_FEE) * 100,
+    (paidAmount / totalCourseFee) * 100,
     100
   );
 
   const visibleHistory = showAllHistory
-    ? paymentHistory
-    : paymentHistory.slice(0, 3);
+    ? history
+    : history.slice(0, 3);
+
+  const handlePayOnline = async () => {
+    setPayLoading(true);
+    setPaySuccessMsg("");
+    try {
+      const session = await createOnlinePaymentSession(nextPaymentAmount);
+      if (session?.sessionId) {
+        await verifyPayment(session.sessionId);
+        setPaySuccessMsg(`Payment of ${formatCurrency(nextPaymentAmount)} confirmed! Receipt generated.`);
+        fetchFinance();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Payment session error");
+    } finally {
+      setPayLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -133,6 +177,18 @@ function Finance() {
           </div>
         </div>
       </div>
+
+      {warnings && warnings.length > 0 && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="text-[#D71920]" size={20} />
+            <div>
+              <p className="text-sm font-bold text-red-900">Payment Notice</p>
+              <p className="text-xs text-red-700">{warnings[0]?.reason || warnings[0]?.message || "Please ensure pending fee installments are settled on time."}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Financial Summary */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -489,29 +545,53 @@ function Finance() {
               </p>
             </div>
 
-            <div className="mt-5 rounded-xl border border-orange-200 bg-orange-50 p-4">
-              <div className="flex items-start gap-3">
-                <Banknote className="mt-0.5 text-orange-600" size={21} />
-                <div>
-                  <p className="text-sm font-semibold text-orange-900">
-                    Payment gateway setup required
-                  </p>
-                  <p className="mt-1 text-xs leading-5 text-orange-800">
-                    This is the frontend demonstration. Connect an online
-                    payment provider and backend verification before
-                    accepting real payments.
-                  </p>
-                </div>
+            {paySuccessMsg ? (
+              <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 text-xs">
+                <p className="font-bold text-sm mb-1">Payment Successful!</p>
+                <p>{paySuccessMsg}</p>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="mt-4 w-full rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700"
+                >
+                  Close
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="mt-0.5 text-blue-600" size={21} />
+                    <div>
+                      <p className="text-sm font-semibold text-blue-900">
+                        Secure Card Checkout
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-blue-800">
+                        Processed securely via IJSE payment gateway. Instant receipt issued upon confirmation.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-            <button
-              type="button"
-              onClick={() => setShowPaymentModal(false)}
-              className="mt-5 w-full rounded-xl border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Close
-            </button>
+                <div className="mt-5 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentModal(false)}
+                    className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={payLoading}
+                    onClick={handlePayOnline}
+                    className="flex-1 rounded-xl bg-[#D71920] px-4 py-3 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {payLoading ? "Processing..." : `Pay ${formatCurrency(nextPaymentAmount)}`}
+                  </button>
+                </div>
+              </>
+            )}
 
           </div>
         </div>

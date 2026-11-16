@@ -16,6 +16,7 @@ import SkillGaps from "../pages/SkillGaps";
 import CareerRoadmap from "../pages/CareerRoadmap";
 import Finance from "../pages/Finance";
 import ExamTimetable from "../pages/ExamTimeTable";
+import LectureTimetable from "../pages/LectureTimetable";
 import Results from "../pages/Results";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
@@ -55,6 +56,7 @@ function AppRoutes() {
           <Route path="/career-roadmap" element={<CareerRoadmap />} />
           <Route path="/finance" element={<Finance />} />
           <Route path="/exam-timetable" element={<ExamTimetable />} />
+          <Route path="/lecture-timetable" element={<LectureTimetable />} />
           <Route path="/results" element={<Results />} />
 
           {/* Authentication */}

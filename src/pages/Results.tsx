@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Award,
   BookOpen,
@@ -12,6 +12,8 @@ import {
   TrendingUp,
   XCircle,
 } from "lucide-react";
+import { getMyResults } from "../services/exam.service";
+import { useAuth } from "../hooks/UseAuth";
 
 type ExamResult = {
   id: number;
@@ -93,11 +95,34 @@ const resultData: ExamResult[] = [
 ];
 
 function Results() {
+  const { user } = useAuth();
+  const [results, setResults] = useState<ExamResult[]>(resultData);
   const [selectedSemester, setSelectedSemester] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    getMyResults()
+      .then((data: any[]) => {
+        if (data && data.length > 0) {
+          const mapped: ExamResult[] = data.map((r: any, idx: number) => ({
+            id: idx + 1,
+            subject: r.moduleName || r.moduleCode || "Module",
+            examType: r.examType || "Final Examination",
+            semester: r.semester || "Semester 1",
+            examDate: r.examDate || new Date().toISOString().slice(0, 10),
+            marks: r.score ?? r.marks ?? 0,
+            totalMarks: 100,
+            grade: r.grade || "A",
+            status: r.isPassed ? "Passed" : "Failed",
+          }));
+          setResults(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const filteredResults = useMemo(() => {
-    return resultData.filter((result) => {
+    return results.filter((result) => {
       const matchesSemester =
         selectedSemester === "All" ||
         result.semester === selectedSemester;
@@ -108,9 +133,9 @@ function Results() {
 
       return matchesSemester && matchesSearch;
     });
-  }, [selectedSemester, searchTerm]);
+  }, [results, selectedSemester, searchTerm]);
 
-  const publishedResults = resultData.filter(
+  const publishedResults = results.filter(
     (result) => result.status !== "Pending"
   );
 
@@ -188,13 +213,13 @@ function Results() {
 
             <div>
               <h2 className="text-lg font-bold text-gray-900">
-                {currentStudent.studentName}
+                {user ? `${user.firstName} ${user.lastName}` : currentStudent.studentName}
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                Student ID: {currentStudent.studentId}
+                Student ID: {user?.studentId || currentStudent.studentId}
               </p>
               <p className="mt-1 text-xs text-gray-400">
-                {currentStudent.course}
+                {user?.institutionalId || currentStudent.course}
               </p>
             </div>
           </div>
@@ -202,7 +227,7 @@ function Results() {
           <div className="rounded-lg bg-gray-50 px-5 py-3">
             <p className="text-xs text-gray-500">Registered Batch</p>
             <p className="mt-1 text-lg font-bold text-[#D71920]">
-              {currentStudent.batch}
+              {user?.institutionalId ? user.institutionalId.split("@")[0].split(",")[1]?.toUpperCase() : currentStudent.batch}
             </p>
           </div>
         </div>

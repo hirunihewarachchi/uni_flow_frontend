@@ -52,7 +52,7 @@ const publicMenu: MenuItem[] = [
 
 // Student navigation
 const studentMenu: MenuItem[] = [
-  { title: "Lecture Timetable", path: "/timetable", icon: CalendarDays },
+  { title: "Lecture Timetable", path: "/lecture-timetable", icon: CalendarDays },
   { title: "Exam Timetable", path: "/exam-timetable", icon: CalendarDays },
   { title: "Examination Results", path: "/results", icon: Award },
   { title: "Finance & Payments", path: "/finance", icon: Wallet },
@@ -72,9 +72,9 @@ function Sidebar({
   const navigate = useNavigate();
 
   const isStudent = isAuthenticated && userRole === "STUDENT";
-  const isMarketing = isAuthenticated && userRole === "MARKETING";
-  const isAcademic = isAuthenticated && userRole === "ACADEMIC";
-  const isFinance = isAuthenticated && userRole === "FINANCE";
+  const isMarketing = isAuthenticated && (userRole === "MARKETING" || userRole === "ADMIN");
+  const isAcademic = isAuthenticated && (userRole === "ACADEMIC" || userRole === "ADMIN");
+  const isFinance = isAuthenticated && (userRole === "FINANCE" || userRole === "ADMIN");
   const isAdmin = isAuthenticated && userRole === "ADMIN";
 
   // Render navigation links
@@ -121,8 +121,11 @@ function Sidebar({
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("ijse_token");
+    localStorage.removeItem("ijse_user");
 
     navigate("/login", { replace: true });
+    window.location.reload();
   };
 
   // User role label

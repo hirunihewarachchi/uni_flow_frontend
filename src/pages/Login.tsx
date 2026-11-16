@@ -40,16 +40,19 @@ function Login() {
         throw new Error(data.message || "Invalid email or password.");
       }
 
-      const token = data.token || data.accessToken;
+      const token = data.data?.token || data.token || data.accessToken;
+      const user = data.data?.user || data.user;
 
       if (!token) {
-        throw new Error("Login response did not contain an authentication token.");
+        throw new Error(data.message || "Login response did not contain an authentication token.");
       }
 
       localStorage.setItem("token", token);
+      localStorage.setItem("ijse_token", token);
 
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("ijse_user", JSON.stringify(user));
       }
 
       if (rememberMe) {

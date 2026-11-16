@@ -1,25 +1,27 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Users,
   UserPlus,
   ClipboardList,
   GraduationCap,
   Search,
-  Bell,
-  ChevronDown,
   ArrowUpRight,
-  CheckCircle2,
   Clock,
   XCircle,
   Plus,
   Filter,
   Eye,
   Mail,
-  Phone,
-  CalendarDays,
   BookOpen,
+  KeyRound,
+  ShieldCheck,
+  Copy,
+  Check,
 } from "lucide-react";
+import { getAllStudents, registerStudentByMarketing } from "../services/student.service";
+import { getAdmissionRequests, updateAdmissionStatus } from "../services/admission.service";
+import { getBatches } from "../services/academic.service";
 
 type Tab = "overview" | "register" | "students" | "requests";
 
@@ -112,8 +114,9 @@ const inputClass =
 
 function Marketing() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [students, setStudents] = useState(initialStudents);
-  const [requests, setRequests] = useState(initialRequests);
+  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [requests, setRequests] = useState<EnrollmentRequest[]>(initialRequests);
+  const [batchList, setBatchList] = useState(batches);
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("All");
   const [selectedRequest, setSelectedRequest] =
@@ -124,14 +127,71 @@ function Marketing() {
     lastName: "",
     email: "",
     phone: "",
-    course: "",
-    batch: "",
+    course: "HDSE",
+    batch: "HDSE-75",
   });
 
   const [message, setMessage] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    studentId: string;
+    institutionalEmail: string;
+    initialPassword: string;
+  } | null>(null);
 
-  const filteredBatches = batches.filter(
-    (batch) => batch.course === form.course
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const fetchAllData = async () => {
+    try {
+      const [stuRes, reqRes, batchRes] = await Promise.allSettled([
+        getAllStudents(),
+        getAdmissionRequests(),
+        getBatches(),
+      ]);
+
+      if (stuRes.status === "fulfilled" && stuRes.value) {
+        const mapped = stuRes.value.map((s: any) => ({
+          id: s.studentId || s.registrationNumber || s._id,
+          name: `${s.firstName} ${s.lastName}`.trim(),
+          email: s.email,
+          phone: s.phone,
+          course: s.courseCode || "HDSE",
+          batch: s.batchNumber || "HDSE-75",
+          registeredDate: s.createdAt ? new Date(s.createdAt).toISOString().slice(0, 10) : "2026-11-15",
+          status: s.status === "ACTIVE" ? "Active" : "Pending",
+        }));
+        if (mapped.length > 0) setStudents(mapped);
+      }
+
+      if (reqRes.status === "fulfilled" && reqRes.value) {
+        const mappedReqs = reqRes.value.map((r: any) => ({
+          id: r._id,
+          name: r.fullName,
+          email: r.email,
+          phone: r.phone,
+          course: r.programInterest,
+          date: r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : "2026-11-15",
+          status: r.status === "PENDING" ? "Pending" : r.status === "APPROVED" ? "Approved" : "Rejected",
+        }));
+        if (mappedReqs.length > 0) setRequests(mappedReqs);
+      }
+
+      if (batchRes.status === "fulfilled" && batchRes.value) {
+        const mappedBatches = batchRes.value.map((b: any) => ({
+          id: b.batchNumber,
+          course: b.courseCode,
+        }));
+        if (mappedBatches.length > 0) setBatchList(mappedBatches);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const filteredBatches = batchList.filter(
+    (batch) => !form.course || batch.course.toUpperCase() === form.course.toUpperCase()
   );
 
   const filteredStudents = useMemo(() => {
@@ -153,10 +213,10 @@ function Marketing() {
   ).length;
 
   const registeredToday = students.filter(
-    (student) => student.registeredDate === "2026-11-15"
+    (student) => student.registeredDate === new Date().toISOString().slice(0, 10)
   ).length;
 
-  const handleRegister = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMessage("");
 
@@ -170,53 +230,70 @@ function Marketing() {
       return;
     }
 
-    const emailExists = students.some(
-      (student) =>
-        student.email.toLowerCase() === form.email.trim().toLowerCase()
-    );
+    setRegLoading(true);
 
-    if (emailExists) {
-      setMessage("A student with this email already exists.");
-      return;
+    try {
+      const res = await registerStudentByMarketing({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        address: "Panadura, Sri Lanka",
+        courseCode: form.course,
+        batchNumber: form.batch,
+        totalCourseFee: 250000,
+        initialPayment: 50000,
+      });
+
+      if (res.data?.credentials) {
+        setCreatedCredentials(res.data.credentials);
+      }
+
+      setMessage(
+        "Student registered successfully! Institutional credentials and payment schedule generated."
+      );
+
+      setForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        course: "HDSE",
+        batch: "HDSE-75",
+      });
+
+      fetchAllData();
+    } catch (err: any) {
+      setMessage(
+        err.response?.data?.message || err.message || "Student registration failed"
+      );
+    } finally {
+      setRegLoading(false);
     }
-
-    const newStudent: Student = {
-      id: `IJSE-${String(students.length + 1).padStart(3, "0")}`,
-      name: `${form.firstName.trim()} ${form.lastName.trim()}`,
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      course: form.course,
-      batch: form.batch,
-      registeredDate: new Date().toISOString().slice(0, 10),
-      status: "Pending",
-    };
-
-    setStudents((previous) => [newStudent, ...previous]);
-
-    setForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      course: "",
-      batch: "",
-    });
-
-    setMessage(
-      "Demo registration completed. Backend account creation and invitation email are not connected yet."
-    );
   };
 
-  const updateRequestStatus = (
+  const updateRequestStatus = async (
     requestId: string,
     status: "Approved" | "Rejected"
   ) => {
-    setRequests((previous) =>
-      previous.map((request) =>
-        request.id === requestId ? { ...request, status } : request
-      )
-    );
-    setSelectedRequest(null);
+    try {
+      await updateAdmissionStatus(
+        requestId,
+        status === "Approved" ? "APPROVED" : "REJECTED"
+      );
+      setRequests((previous) =>
+        previous.map((request) =>
+          request.id === requestId ? { ...request, status } : request
+        )
+      );
+      setSelectedRequest(null);
+    } catch (e) {}
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   const tabs = [
@@ -555,10 +632,11 @@ function Marketing() {
 
                 <button
                   type="submit"
-                  className="flex items-center gap-2 rounded-lg bg-[#D71920] px-5 py-3 text-sm font-semibold text-white hover:bg-[#B9151B]"
+                  disabled={regLoading}
+                  className="flex items-center gap-2 rounded-lg bg-[#D71920] px-5 py-3 text-sm font-semibold text-white hover:bg-[#B9151B] disabled:opacity-50"
                 >
                   <UserPlus size={17} />
-                  Register Student
+                  {regLoading ? "Registering..." : "Register Student"}
                 </button>
               </div>
             </form>
@@ -839,6 +917,96 @@ function Marketing() {
                 className="rounded-lg border border-[#E5E5E5] px-4 py-2.5 text-sm font-semibold text-[#525252] hover:bg-[#F5F5F5]"
               >
                 Mark Reviewed
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Created Student Credentials Modal */}
+      {createdCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-7 shadow-2xl border border-gray-100">
+            <div className="flex items-center gap-3 text-emerald-600 mb-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                <ShieldCheck size={26} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Student Registered!</h3>
+                <p className="text-xs text-gray-500">Official institutional credentials generated</p>
+              </div>
+            </div>
+
+            <p className="text-xs leading-5 text-gray-600 mb-5">
+              The student record has been added to the database with a fee payment schedule. Please share these official login details with the student:
+            </p>
+
+            <div className="space-y-3 rounded-xl bg-gray-50 p-4 border border-gray-200 text-xs">
+              <div>
+                <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Student ID
+                </span>
+                <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-gray-200">
+                  <span className="font-mono font-bold text-gray-800 text-sm">
+                    {createdCredentials.studentId}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(createdCredentials.studentId, "studentId")}
+                    className="text-gray-500 hover:text-[#D71920]"
+                  >
+                    {copiedField === "studentId" ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Institutional Login Identifier
+                </span>
+                <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-gray-200">
+                  <span className="font-mono font-bold text-gray-800 text-sm">
+                    {createdCredentials.institutionalEmail}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(createdCredentials.institutionalEmail, "email")}
+                    className="text-gray-500 hover:text-[#D71920]"
+                  >
+                    {copiedField === "email" ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <span className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  Temporary Initial Password
+                </span>
+                <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-gray-200">
+                  <span className="font-mono font-bold text-gray-800 text-sm">
+                    {createdCredentials.initialPassword}
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(createdCredentials.initialPassword, "pw")}
+                    className="text-gray-500 hover:text-[#D71920]"
+                  >
+                    {copiedField === "pw" ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-lg bg-amber-50 p-3 border border-amber-200 text-[11px] text-amber-800 flex items-start gap-2">
+              <KeyRound size={16} className="shrink-0 mt-0.5 text-amber-600" />
+              <span>
+                <strong>Mandatory Password Change:</strong> The student will be prompted immediately to set a private password on their first login.
+              </span>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setCreatedCredentials(null)}
+                className="rounded-lg bg-[#D71920] px-6 py-2.5 text-xs font-bold text-white hover:bg-red-700 transition"
+              >
+                Done
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   CalendarDays,
   Clock,
@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { getExamTimetable } from "../services/exam.service";
 
 type Exam = {
   id: number;
@@ -194,13 +195,36 @@ const batches = [
 ];
 
 function ExamTimetable() {
+  const [exams, setExams] = useState<Exam[]>(examData);
   const [selectedBatch, setSelectedBatch] = useState("HDSE 75");
   const [activeFilter, setActiveFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    getExamTimetable()
+      .then((data: any[]) => {
+        if (data && data.length > 0) {
+          const mapped: Exam[] = data.map((e: any, idx: number) => ({
+            id: idx + 1,
+            batch: e.batchNumber,
+            subject: `${e.moduleName} (${e.moduleCode})`,
+            examType: e.type || "Final Examination",
+            date: e.date,
+            startTime: e.time?.split("-")[0] || "09:00 AM",
+            endTime: e.time?.split("-")[1] || "12:00 PM",
+            duration: "3 Hours",
+            venue: e.hall || "Lab 01",
+            status: "Upcoming",
+          }));
+          setExams(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const batchExams = useMemo(
-    () => examData.filter((exam) => exam.batch === selectedBatch),
-    [selectedBatch]
+    () => exams.filter((exam) => exam.batch.replace("-", " ") === selectedBatch.replace("-", " ") || exam.batch === selectedBatch),
+    [exams, selectedBatch]
   );
 
   const filteredExams = useMemo(() => {

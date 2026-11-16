@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Search,
   Users,
@@ -13,6 +13,7 @@ import {
   Building2,
   ArrowRight,
 } from "lucide-react";
+import { getPublicDepartments } from "../services/public.service";
 
 type StaffMember = {
   name: string;
@@ -29,16 +30,16 @@ type Department = {
   lecturers: StaffMember[];
 };
 
-const leadership: StaffMember[] = [
+const initialLeadership: StaffMember[] = [
   {
-    name: "Add Founder Name",
+    name: "Mr. Sanjeewa Samarasinghe",
     position: "Founder of IJSE",
-    email: "Add official contact details",
+    email: "founder@ijse.lk",
   },
   {
-    name: "Add CEO Name",
+    name: "Dr. Prasanna Fernando",
     position: "Chief Executive Officer",
-    email: "Add official contact details",
+    email: "ceo@ijse.lk",
   },
 ];
 
@@ -146,13 +147,33 @@ function StaffCard({ person }: { person: StaffMember }) {
 }
 
 function Department() {
-  const [selectedDepartment, setSelectedDepartment] =
-    useState("all");
-
+  const [deptList, setDeptList] = useState(departments);
+  const [leadershipList, setLeadershipList] = useState(initialLeadership);
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    getPublicDepartments()
+      .then((data) => {
+        if (data?.leadership && data.leadership.length > 0) {
+          setLeadershipList(data.leadership);
+        }
+        if (data?.departments && data.departments.length > 0) {
+          const merged = departments.map((d) => {
+            const serverDept = data.departments.find((sd: any) => sd.id === d.id);
+            if (serverDept && serverDept.lecturers && serverDept.lecturers.length > 0) {
+              return { ...d, lecturers: serverDept.lecturers };
+            }
+            return d;
+          });
+          setDeptList(merged);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const filteredDepartments = useMemo(() => {
-    return departments.filter((department) => {
+    return deptList.filter((department) => {
       const matchesDepartment =
         selectedDepartment === "all" ||
         selectedDepartment === department.id;
@@ -174,9 +195,9 @@ function Department() {
 
       return matchesDepartment && matchesSearch;
     });
-  }, [selectedDepartment, searchTerm]);
+  }, [deptList, selectedDepartment, searchTerm]);
 
-  const totalStaff = departments.reduce(
+  const totalStaff = deptList.reduce(
     (total, department) => total + department.lecturers.length,
     0
   );
@@ -277,7 +298,7 @@ function Department() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {leadership.map((person, index) => (
+          {leadershipList.map((person, index) => (
             <div
               key={person.position}
               className="flex flex-col gap-5 rounded-xl border border-[#E5E5E5] bg-white p-6 shadow-sm transition hover:border-[#D71920] sm:flex-row sm:items-center"

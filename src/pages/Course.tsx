@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   BookOpen,
   Clock,
@@ -15,6 +15,7 @@ import {
   Layers,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getPublicCourses } from "../services/public.service";
 
 const programs = [
   {
@@ -129,12 +130,37 @@ const programs = [
 ];
 
 function Course() {
+  const [courseList, setCourseList] = useState(programs);
   const [selectedProgram, setSelectedProgram] = useState("HDSE");
   const [expandedSections, setExpandedSections] = useState<string[]>([
     "HDSE-Semester 1",
   ]);
 
-  const selectedCourse = programs.find(
+  useEffect(() => {
+    getPublicCourses()
+      .then((data: any[]) => {
+        if (data && data.length > 0) {
+          const merged = data.map((c) => {
+            const existing = programs.find((p) => p.id === c.id);
+            return {
+              id: c.id,
+              title: c.title || existing?.title || c.id,
+              shortName: c.shortName || existing?.shortName || c.id,
+              duration: c.duration || existing?.duration || "N/A",
+              structure: c.structure || existing?.structure || "N/A",
+              description: c.description || existing?.description || "",
+              icon: existing?.icon || Code,
+              color: existing?.color || "bg-red-50 text-[#D71920]",
+              modules: c.modules && c.modules.length > 0 ? c.modules : existing?.modules || [],
+            };
+          });
+          setCourseList(merged);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const selectedCourse = courseList.find(
     (program) => program.id === selectedProgram
   );
 
@@ -234,7 +260,7 @@ function Course() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {programs.map((program) => {
+          {courseList.map((program) => {
             const Icon = program.icon;
             const active = selectedProgram === program.id;
 

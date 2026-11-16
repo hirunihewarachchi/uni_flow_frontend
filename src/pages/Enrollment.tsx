@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from "react";
 import {
   GraduationCap,
@@ -9,17 +8,60 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+import { submitAdmissionInquiry } from "../services/admission.service";
 
 function Enrollment() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    address: "",
+    programInterest: "HDSE",
+    intake: "Next Available Intake",
+    qualification: "A/L",
+    message: "",
+  });
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // Frontend UI demonstration only.
-    // Backend API integration will be added later.
-    setSubmitted(true);
+    try {
+      await submitAdmissionInquiry({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        programInterest: formData.programInterest,
+        branchPreference: "Panadura",
+        message: `${formData.qualification} qualification. Intake: ${formData.intake}. Address: ${formData.address}. Note: ${formData.message}`,
+      });
+      setSubmitted(true);
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        dateOfBirth: "",
+        address: "",
+        programInterest: "HDSE",
+        intake: "Next Available Intake",
+        qualification: "A/L",
+        message: "",
+      });
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || err.message || "Failed to submit enrollment application"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle =
@@ -27,7 +69,6 @@ function Enrollment() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-
       {/* Page Heading */}
       <div>
         <p className="text-sm font-bold uppercase tracking-widest text-[#D71920]">
@@ -47,7 +88,6 @@ function Enrollment() {
 
       {/* Information Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-
         <div className="flex items-center gap-4 rounded-xl border border-[#E5E5E5] bg-white p-5">
           <div className="rounded-lg bg-red-50 p-3 text-[#D71920]">
             <GraduationCap size={25} />
@@ -89,14 +129,11 @@ function Enrollment() {
             </p>
           </div>
         </div>
-
       </div>
 
       {/* Enrollment Form */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-
         <div className="rounded-xl border border-[#E5E5E5] bg-white p-6 shadow-sm lg:col-span-2 md:p-8">
-
           <div className="mb-7 border-b border-[#EEEEEE] pb-5">
             <h2 className="text-xl font-bold text-[#171717]">
               Application Form
@@ -107,23 +144,31 @@ function Enrollment() {
           </div>
 
           {submitted && (
-            <div className="mb-6 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <CheckCircle2 className="shrink-0 text-amber-700" size={21} />
+            <div className="mb-6 flex gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <CheckCircle2 className="shrink-0 text-emerald-700" size={21} />
               <div>
-                <p className="text-sm font-semibold text-amber-900">
-                  Form demonstration completed
+                <p className="text-sm font-semibold text-emerald-900">
+                  Application Submitted Successfully!
                 </p>
-                <p className="mt-1 text-xs leading-5 text-amber-800">
-                  This is currently a frontend-only form. No application
-                  has been sent to the Marketing Department yet.
-                  Backend integration is required.
+                <p className="mt-1 text-xs leading-5 text-emerald-800">
+                  Your enrollment inquiry has been securely sent to the IJSE Marketing Department.
+                  Our admissions counseling team will contact you shortly via email and phone.
                 </p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="mb-6 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+              <AlertCircle className="shrink-0 text-[#D71920]" size={21} />
+              <div>
+                <p className="text-sm font-semibold text-red-900">Submission Error</p>
+                <p className="mt-1 text-xs leading-5 text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
 
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Details */}
             <div>
               <h3 className="mb-4 text-sm font-bold text-[#171717]">
@@ -131,7 +176,6 @@ function Enrollment() {
               </h3>
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[#404040]">
                     Full Name *
@@ -139,6 +183,10 @@ function Enrollment() {
                   <input
                     type="text"
                     placeholder="Enter your full name"
+                    value={formData.fullName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
                     className={inputStyle}
                     required
                   />
@@ -151,6 +199,10 @@ function Enrollment() {
                   <input
                     type="email"
                     placeholder="example@gmail.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className={inputStyle}
                     required
                   />
@@ -163,6 +215,10 @@ function Enrollment() {
                   <input
                     type="tel"
                     placeholder="07X XXX XXXX"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     className={inputStyle}
                     required
                   />
@@ -174,6 +230,10 @@ function Enrollment() {
                   </label>
                   <input
                     type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) =>
+                      setFormData({ ...formData, dateOfBirth: e.target.value })
+                    }
                     className={inputStyle}
                   />
                 </div>
@@ -185,10 +245,13 @@ function Enrollment() {
                   <input
                     type="text"
                     placeholder="Enter your residential address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
                     className={inputStyle}
                   />
                 </div>
-
               </div>
             </div>
 
@@ -199,15 +262,18 @@ function Enrollment() {
               </h3>
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[#404040]">
                     Select Course *
                   </label>
-                  <select className={inputStyle} required defaultValue="">
-                    <option value="" disabled>
-                      Choose a course
-                    </option>
+                  <select
+                    className={inputStyle}
+                    required
+                    value={formData.programInterest}
+                    onChange={(e) =>
+                      setFormData({ ...formData, programInterest: e.target.value })
+                    }
+                  >
                     <option value="HDSE">Higher Diploma in Software Engineering (HDSE)</option>
                     <option value="CMJD">Comprehensive Master in Java Development (CMJD)</option>
                     <option value="CAME">Certificate in Applied Machine Learning & AI (CAME)</option>
@@ -219,10 +285,14 @@ function Enrollment() {
                   <label className="mb-2 block text-sm font-medium text-[#404040]">
                     Preferred Intake *
                   </label>
-                  <select className={inputStyle} required defaultValue="">
-                    <option value="" disabled>
-                      Select an intake
-                    </option>
+                  <select
+                    className={inputStyle}
+                    required
+                    value={formData.intake}
+                    onChange={(e) =>
+                      setFormData({ ...formData, intake: e.target.value })
+                    }
+                  >
                     <option value="Next Available Intake">
                       Next Available Intake
                     </option>
@@ -236,10 +306,14 @@ function Enrollment() {
                   <label className="mb-2 block text-sm font-medium text-[#404040]">
                     Previous Educational Qualification *
                   </label>
-                  <select className={inputStyle} required defaultValue="">
-                    <option value="" disabled>
-                      Select your qualification
-                    </option>
+                  <select
+                    className={inputStyle}
+                    required
+                    value={formData.qualification}
+                    onChange={(e) =>
+                      setFormData({ ...formData, qualification: e.target.value })
+                    }
+                  >
                     <option value="O/L">G.C.E. Ordinary Level</option>
                     <option value="A/L">G.C.E. Advanced Level</option>
                     <option value="Diploma">Diploma</option>
@@ -247,7 +321,6 @@ function Enrollment() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-
               </div>
             </div>
 
@@ -264,6 +337,10 @@ function Enrollment() {
               <textarea
                 rows={4}
                 placeholder="Tell us a little about your interests and goals..."
+                value={formData.message}
+                onChange={(e) =>
+                  setFormData({ ...formData, message: e.target.value })
+                }
                 className={inputStyle + " resize-none"}
               />
             </div>
@@ -284,19 +361,18 @@ function Enrollment() {
 
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#D71920] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#B9151B] md:w-auto"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#D71920] px-6 py-3.5 text-sm font-bold text-white transition hover:bg-[#B9151B] disabled:opacity-50 md:w-auto"
               >
-                Submit Application
+                {loading ? "Submitting..." : "Submit Application"}
                 <ArrowRight size={18} />
               </button>
             </div>
-
           </form>
         </div>
 
         {/* Right Information Panel */}
         <div className="space-y-5">
-
           <div className="rounded-xl bg-[#171717] p-6 text-white">
             <div className="mb-5 inline-flex rounded-lg bg-[#D71920] p-3">
               <GraduationCap size={28} />
@@ -308,52 +384,45 @@ function Enrollment() {
 
             <p className="mt-3 text-sm leading-6 text-gray-300">
               Develop your technical knowledge, improve your
-              problem-solving skills, and prepare for opportunities
-              in the IT industry.
+              problem-solving skills, and prepare for high-demand
+              careers in software engineering.
             </p>
 
-            <div className="mt-6 border-t border-white/10 pt-5">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Our Programs
-              </p>
-
-              <ul className="mt-4 space-y-3 text-sm text-gray-200">
-                <li>• Higher Diploma in Software Engineering</li>
-                <li>• Comprehensive Master in Java Development</li>
-                <li>• Applied Machine Learning & AI</li>
-                <li>• Foundation Program</li>
-              </ul>
+            <div className="mt-6 space-y-3 border-t border-white/10 pt-6 text-xs text-gray-300">
+              <p>✔ Comprehensive curriculum</p>
+              <p>✔ Industry-experienced lecturers</p>
+              <p>✔ Hands-on software development training</p>
+              <p>✔ Job-oriented modern skill pathways</p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#E5E5E5] bg-white p-6">
-            <h3 className="font-bold text-[#171717]">
-              Enrollment Support
+          <div className="rounded-xl border border-[#E5E5E5] bg-white p-6 shadow-sm">
+            <h3 className="text-base font-bold text-[#171717]">
+              Need Assistance?
             </h3>
 
-            <p className="mt-2 text-sm leading-6 text-[#737373]">
-              Our Marketing Department will handle enrollment inquiries
-              after the application system is connected to the backend.
+            <p className="mt-2 text-xs leading-5 text-[#737373]">
+              Contact our Marketing Department directly for any
+              course inquiries or admissions guidance.
             </p>
 
-            <div className="mt-5 space-y-4">
-              <div className="flex items-center gap-3 text-sm text-[#525252]">
-                <Mail size={18} className="text-[#D71920]" />
-                <span>Marketing Department</span>
+            <div className="mt-5 space-y-3 text-sm text-[#404040]">
+              <div className="flex items-center gap-3">
+                <Phone size={16} className="text-[#D71920]" />
+                <span>+94 11 2 777 555</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm text-[#525252]">
-                <Phone size={18} className="text-[#D71920]" />
-                <span>Contact details to be added</span>
+              <div className="flex items-center gap-3">
+                <Mail size={16} className="text-[#D71920]" />
+                <span>info@ijse.lk</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm text-[#525252]">
-                <MapPin size={18} className="text-[#D71920]" />
-                <span>IJSE, Sri Lanka</span>
+              <div className="flex items-center gap-3">
+                <MapPin size={16} className="text-[#D71920]" />
+                <span>Pelawatta, Battaramulla</span>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

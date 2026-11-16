@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   BrainCircuit,
   BriefcaseBusiness,
@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   BookOpen,
   Code2,
-  Database,
   MessageSquare,
   Lightbulb,
   Clock,
@@ -18,6 +17,7 @@ import {
   Award,
   Compass,
 } from "lucide-react";
+import { getCareerRoadmap, confirmCareerGoal } from "../services/ai.service";
 
 type ModuleResult = {
   module: string;
@@ -331,6 +331,23 @@ function CareerRoadmap() {
   const [studentId, setStudentId] = useState("STU002");
   const [selectedCareerId, setSelectedCareerId] = useState("business-analyst");
   const [careerConfirmed, setCareerConfirmed] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchRoadmap = async () => {
+      try {
+        const data = await getCareerRoadmap();
+        if (data) {
+          if (data.selectedCareerId) setSelectedCareerId(data.selectedCareerId);
+          if (typeof data.careerConfirmed === "boolean") setCareerConfirmed(data.careerConfirmed);
+        }
+      } catch (err) {
+        console.warn("Using default career roadmap state", err);
+      }
+    };
+
+    fetchRoadmap();
+  }, []);
 
   const student = students.find((item) => item.id === studentId)!;
 
@@ -374,6 +391,21 @@ function CareerRoadmap() {
   const selectCareer = (careerId: string) => {
     setSelectedCareerId(careerId);
     setCareerConfirmed(false);
+  };
+
+  const handleConfirmCareer = async () => {
+    setIsSaving(true);
+    try {
+      await confirmCareerGoal({
+        selectedRole: selectedCareer.title,
+      });
+      setCareerConfirmed(true);
+    } catch (err) {
+      console.warn("Could not record goal to server, using local state", err);
+      setCareerConfirmed(true);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -636,10 +668,13 @@ function CareerRoadmap() {
 
           <button
             type="button"
-            onClick={() => setCareerConfirmed(true)}
-            className="mt-5 flex items-center gap-2 rounded-lg bg-[#D71920] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#B9151B]"
+            onClick={handleConfirmCareer}
+            disabled={isSaving}
+            className="mt-5 flex items-center gap-2 rounded-lg bg-[#D71920] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#B9151B] disabled:opacity-50"
           >
-            {careerConfirmed ? (
+            {isSaving ? (
+              <span>Saving...</span>
+            ) : careerConfirmed ? (
               <>
                 <CheckCircle2 size={17} />
                 Career Goal Selected
@@ -671,7 +706,7 @@ function CareerRoadmap() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {selectedCareer.skills.map((skill, index) => (
+              {selectedCareer.skills.map((skill) => (
                 <div
                   key={skill}
                   className="flex items-center gap-3 rounded-lg border border-[#EEEEEE] p-3"

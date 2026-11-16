@@ -1,5 +1,5 @@
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, useEffect, type FormEvent } from "react";
 import {
   LayoutDashboard,
   Wallet,
@@ -11,9 +11,12 @@ import {
   X,
   CreditCard,
   Banknote,
-  CalendarDays,
-  Download,
 } from "lucide-react";
+import {
+  getStudentPayments,
+  recordManualPayment,
+  getPaymentTransactions,
+} from "../services/finance.service";
 
 type Tab = "overview" | "payments" | "transactions" | "reports";
 type PaymentStatus = "PAID" | "PARTIAL" | "UNPAID";
@@ -144,8 +147,8 @@ const formatCurrency = (amount: number) =>
 
 function FinanceDep() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [students, setStudents] = useState(initialStudents);
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [students, setStudents] = useState<StudentPayment[]>(initialStudents);
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
   const [selectedBatch, setSelectedBatch] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
@@ -156,11 +159,51 @@ function FinanceDep() {
     studentId: "",
     amount: "",
     method: "Bank Transfer",
-    date: "2026-11-15",
+    date: new Date().toISOString().slice(0, 10),
     reference: "",
   });
 
-  const batches = [...new Set(students.map((student) => student.batch))];
+  const fetchFinanceData = async () => {
+    try {
+      const [paymentsRes, txRes] = await Promise.allSettled([
+        getStudentPayments(),
+        getPaymentTransactions(),
+      ]);
+
+      if (paymentsRes.status === "fulfilled" && paymentsRes.value?.length) {
+        const mappedStudents: StudentPayment[] = paymentsRes.value.map((sp: any, idx: number) => ({
+          id: idx + 1,
+          studentId: sp.studentId || `STU-${idx + 1}`,
+          name: sp.name || sp.studentName || "Student",
+          batch: sp.batch || sp.batchNumber || "HDSE-75",
+          course: sp.course || sp.courseCode || "HDSE",
+          totalFee: typeof sp.totalFee === "number" ? sp.totalFee : 250000,
+          paid: typeof sp.paid === "number" ? sp.paid : (sp.paidAmount || 0),
+        }));
+        setStudents(mappedStudents);
+      }
+
+      if (txRes.status === "fulfilled" && txRes.value?.length) {
+        const mappedTx: Transaction[] = txRes.value.map((tx: any, idx: number) => ({
+          id: idx + 1,
+          studentId: tx.studentId || "",
+          studentName: tx.studentName || tx.name || "Student",
+          batch: tx.batchNumber || tx.batch || "HDSE-75",
+          amount: typeof tx.amount === "number" ? tx.amount : 0,
+          method: tx.method || "Bank Transfer",
+          date: tx.date || (tx.createdAt ? new Date(tx.createdAt).toISOString().slice(0, 10) : "2026-11-15"),
+          reference: tx.reference || `TRX-${idx + 1}`,
+        }));
+        setTransactions(mappedTx);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchFinanceData();
+  }, []);
+
+  const batches = [...new Set(students.map((student) => student.batch).filter(Boolean))];
 
   const getStatus = (student: StudentPayment): PaymentStatus => {
     if (student.paid >= student.totalFee) return "PAID";
@@ -185,9 +228,13 @@ function FinanceDep() {
       const matchesBatch =
         selectedBatch === "ALL" || student.batch === selectedBatch;
 
+      const studentName = (student.name || "").toLowerCase();
+      const studentId = (student.studentId || "").toLowerCase();
+      const term = (searchTerm || "").toLowerCase();
+
       const matchesSearch =
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.studentId.toLowerCase().includes(searchTerm.toLowerCase());
+        studentName.includes(term) ||
+        studentId.includes(term);
 
       const matchesStatus =
         paymentStatus === "ALL" ||
@@ -201,13 +248,13 @@ function FinanceDep() {
     const matchesBatch =
       selectedBatch === "ALL" || transaction.batch === selectedBatch;
 
+    const txStudentName = (transaction.studentName || "").toLowerCase();
+    const txRef = (transaction.reference || "").toLowerCase();
+    const term = (searchTerm || "").toLowerCase();
+
     const matchesSearch =
-      transaction.studentName
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      transaction.reference
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      txStudentName.includes(term) ||
+      txRef.includes(term);
 
     return matchesBatch && matchesSearch;
   });
@@ -236,7 +283,7 @@ function FinanceDep() {
     };
   });
 
-  const recordPayment = (e: FormEvent) => {
+  const recordPayment = async (e: FormEvent) => {
     e.preventDefault();
 
     const student = students.find(
@@ -250,50 +297,55 @@ function FinanceDep() {
       return;
     }
 
-    if (amount > student.totalFee - student.paid) {
-      alert("Payment cannot exceed the student's outstanding balance.");
-      return;
-    }
-
     if (!paymentForm.reference.trim()) {
       alert("Please enter a payment reference.");
       return;
     }
 
-    const newTransaction: Transaction = {
-      id: Date.now(),
-      studentId: student.studentId,
-      studentName: student.name,
-      batch: student.batch,
-      amount,
-      method: paymentForm.method,
-      date: paymentForm.date,
-      reference: paymentForm.reference,
-    };
+    try {
+      await recordManualPayment({
+        studentId: student.studentId,
+        amount,
+        method: paymentForm.method as "Bank Transfer" | "Card" | "Cash",
+        reference: paymentForm.reference.trim(),
+        notes: `Manual payment recorded by Finance Officer`,
+      });
 
-    setStudents((previous) =>
-      previous.map((item) =>
-        item.id === student.id
-          ? { ...item, paid: item.paid + amount }
-          : item
-      )
-    );
+      const newTransaction: Transaction = {
+        id: Date.now(),
+        studentId: student.studentId,
+        studentName: student.name,
+        batch: student.batch,
+        amount,
+        method: paymentForm.method,
+        date: paymentForm.date,
+        reference: paymentForm.reference,
+      };
 
-    setTransactions((previous) => [
-      newTransaction,
-      ...previous,
-    ]);
+      setStudents((previous) =>
+        previous.map((item) =>
+          item.studentId === student.studentId
+            ? { ...item, paid: item.paid + amount }
+            : item
+        )
+      );
 
-    setShowPaymentModal(false);
-
-    setPaymentForm({
-      studentId: "",
-      amount: "",
-      method: "Bank Transfer",
-      date: "2026-11-15",
-      reference: "",
-    });
+      setTransactions((previous) => [newTransaction, ...previous]);
+      setShowPaymentModal(false);
+      setPaymentForm({
+        studentId: "",
+        amount: "",
+        method: "Bank Transfer",
+        date: new Date().toISOString().slice(0, 10),
+        reference: "",
+      });
+      fetchFinanceData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to record payment");
+    }
   };
+
+
 
   const selectedStudent = students.find(
     (student) => student.studentId === paymentForm.studentId

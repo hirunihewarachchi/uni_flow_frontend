@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   BrainCircuit,
   Target,
@@ -9,13 +9,13 @@ import {
   BookOpen,
   ClipboardList,
   Clock,
-  ArrowRight,
   Lightbulb,
   GraduationCap,
   Sparkles,
   PlayCircle,
   RefreshCw,
 } from "lucide-react";
+import { getSkillGapAnalysis, toggleAssignment } from "../services/ai.service";
 
 type ModuleResult = {
   module: string;
@@ -132,6 +132,23 @@ function getColor(mark: number) {
 function SkillGaps() {
   const [selectedStudentId, setSelectedStudentId] = useState("STU002");
   const [completedAssignments, setCompletedAssignments] = useState<string[]>([]);
+  const [liveGaps, setLiveGaps] = useState<any[]>([]);
+
+  useEffect(() => {
+    getSkillGapAnalysis()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setLiveGaps(data);
+          const completed = data.flatMap((g: any) =>
+            (g.assignedExercises || [])
+              .filter((ex: any) => ex.isCompleted)
+              .map((ex: any) => `${g.moduleCode}-${ex.title}`)
+          );
+          setCompletedAssignments(completed);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const student = demoStudents.find(
     (item) => item.id === selectedStudentId
@@ -159,12 +176,24 @@ function SkillGaps() {
     setCompletedAssignments([]);
   };
 
-  const handleComplete = (assignmentId: string) => {
+  const handleComplete = (assignmentId: string, moduleCode?: string, title?: string) => {
+    const isNowCompleted = !completedAssignments.includes(assignmentId);
     setCompletedAssignments((previous) =>
       previous.includes(assignmentId)
         ? previous.filter((item) => item !== assignmentId)
         : [...previous, assignmentId]
     );
+
+    if (liveGaps.length > 0 && moduleCode && title) {
+      const gap = liveGaps.find((g) => g.moduleCode === moduleCode);
+      if (gap) {
+        toggleAssignment({
+          skillId: gap._id,
+          assignmentTitle: title,
+          isCompleted: isNowCompleted,
+        }).catch(() => {});
+      }
+    }
   };
 
   return (
@@ -512,7 +541,7 @@ function SkillGaps() {
 
                                 <button
                                   type="button"
-                                  onClick={() => handleComplete(taskId)}
+                                  onClick={() => handleComplete(taskId, result.module, task.title)}
                                   className={`flex shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition ${
                                     completed
                                       ? "bg-green-50 text-green-700"

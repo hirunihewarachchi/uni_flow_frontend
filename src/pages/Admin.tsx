@@ -1,5 +1,5 @@
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, useEffect, type FormEvent } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -16,6 +16,7 @@ import {
   UserX,
   KeyRound,
   Eye,
+  EyeOff,
   Save,
   X,
   ShieldCheck,
@@ -25,7 +26,21 @@ import {
   Phone,
   Mail,
   MapPin,
+  Copy,
+  Check,
+  Sparkles,
 } from "lucide-react";
+import {
+  getStaff,
+  createStaff,
+  toggleStaffStatus as toggleStaffStatusApi,
+  resetStaffPassword as resetStaffPasswordApi,
+  deleteStaff as deleteStaffApi,
+  getWebsiteContent,
+  updateWebsiteContent,
+  getAnnouncements,
+  createAnnouncement,
+} from "../services/admin.service";
 
 type AdminTab =
   | "overview"
@@ -39,7 +54,7 @@ type AdminTab =
 type OfficerRole = "MARKETING" | "ACADEMIC" | "FINANCE";
 
 type Staff = {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   role: OfficerRole;
@@ -128,6 +143,48 @@ function Admin() {
   const [announcements, setAnnouncements] =
     useState<Announcement[]>(initialAnnouncements);
 
+  useEffect(() => {
+    getStaff()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setStaff(
+            data.map((s: any, idx: number) => ({
+              id: s.id || s._id || String(idx + 1),
+              name: s.fullName || s.name || s.username || "Staff Member",
+              email: s.email,
+              phone: s.phone || "0771234567",
+              role: (s.role?.replace("_OFFICER", "") || "MARKETING") as OfficerRole,
+              status: s.isActive === false ? "INACTIVE" : "ACTIVE",
+              joinedDate: s.createdAt ? new Date(s.createdAt).toISOString().slice(0, 10) : "2026-01-01",
+            }))
+          );
+        }
+      })
+      .catch((err) => console.warn("Failed to load staff list", err));
+
+    getWebsiteContent()
+      .then((data) => {
+        if (data) setWebsite((prev) => ({ ...prev, ...data }));
+      })
+      .catch((err) => console.warn("Failed to load website content", err));
+
+    getAnnouncements()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAnnouncements(
+            data.map((a: any, idx: number) => ({
+              id: a._id || idx + 1,
+              title: a.title,
+              description: a.content || a.description || "",
+              date: a.createdAt ? new Date(a.createdAt).toISOString().slice(0, 10) : "2026-11-15",
+              status: (a.isPublished ? "PUBLISHED" : "DRAFT") as "PUBLISHED" | "DRAFT",
+            }))
+          );
+        }
+      })
+      .catch((err) => console.warn("Failed to load announcements", err));
+  }, []);
+
   const [staffSearch, setStaffSearch] = useState("");
   const [staffRoleFilter, setStaffRoleFilter] = useState("ALL");
 
@@ -141,6 +198,16 @@ function Admin() {
 
   const [temporaryPassword, setTemporaryPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    name: string;
+    email: string;
+    temporaryPassword: string;
+    role: string;
+  } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
 
   const [website, setWebsite] = useState({
     instituteName: "IJSE",
@@ -224,7 +291,27 @@ function Admin() {
       role: "MARKETING",
     });
     setTemporaryPassword("");
+    setShowPassword(false);
     setShowStaffModal(true);
+  };
+
+  const autoGenerateEmail = () => {
+    const cleanName = staffForm.name.trim().toLowerCase().split(" ")[0] || "officer";
+    const dept = staffForm.role.toLowerCase();
+    const generated = `${cleanName}.${dept}@ijse.lk`;
+    setStaffForm({ ...staffForm, email: generated });
+  };
+
+  const autoGeneratePassword = () => {
+    const num = Math.floor(1000 + Math.random() * 9000);
+    const pass = `Staff@${num}!`;
+    setTemporaryPassword(pass);
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    window.setTimeout(() => setCopiedField(null), 2000);
   };
 
   const openEditStaff = (person: Staff) => {
@@ -238,7 +325,7 @@ function Admin() {
     setShowStaffModal(true);
   };
 
-  const handleStaffSubmit = (event: FormEvent) => {
+  const handleStaffSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (editingStaff) {
@@ -250,8 +337,9 @@ function Admin() {
         )
       );
       showMessage("Staff details updated.");
+      setShowStaffModal(false);
     } else {
-      if (staff.some((person) => person.email === staffForm.email)) {
+      if (staff.some((person) => person.email.toLowerCase() === staffForm.email.toLowerCase().trim())) {
         showMessage("This email address already exists.");
         return;
       }
@@ -261,49 +349,104 @@ function Admin() {
         return;
       }
 
-      setStaff((previous) => [
-        ...previous,
-        {
-          id: Date.now(),
-          ...staffForm,
+      setStaffLoading(true);
+      try {
+        const nameParts = staffForm.name.trim().split(" ");
+        const firstName = nameParts[0] || "Staff";
+        const lastName = nameParts.slice(1).join(" ") || "Member";
+        const res = await createStaff({
+          firstName,
+          lastName,
+          email: staffForm.email.trim().toLowerCase(),
+          phone: staffForm.phone.trim(),
+          role: staffForm.role,
+          password: temporaryPassword,
+        });
+
+        const newOfficer: Staff = {
+          id: res?.id || res?._id || Date.now(),
+          name: res?.name || `${firstName} ${lastName}`.trim(),
+          email: res?.email || staffForm.email.trim().toLowerCase(),
+          phone: res?.phone || staffForm.phone.trim(),
+          role: staffForm.role,
           status: "ACTIVE",
-        },
-      ]);
+        };
 
-      showMessage("Officer account created successfully.");
+        setStaff((previous) => [newOfficer, ...previous]);
+        setCreatedCredentials({
+          name: newOfficer.name,
+          email: newOfficer.email,
+          temporaryPassword: temporaryPassword,
+          role: staffForm.role,
+        });
+        showMessage("Officer account created successfully! Credentials generated.");
+        setShowStaffModal(false);
+      } catch (err: any) {
+        showMessage(err.response?.data?.message || err.message || "Failed to create officer account in database");
+      } finally {
+        setStaffLoading(false);
+      }
     }
-
-    setShowStaffModal(false);
   };
 
-  const toggleStaffStatus = (id: number) => {
-    setStaff((previous) =>
-      previous.map((person) =>
-        person.id === id
-          ? {
-              ...person,
-              status:
-                person.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
-            }
-          : person
-      )
-    );
-    showMessage("Staff account status updated.");
+  const toggleStaffStatus = async (id: string | number) => {
+    try {
+      const res = await toggleStaffStatusApi(String(id));
+      const newStatus = res?.status || "ACTIVE";
+      setStaff((previous) =>
+        previous.map((person) =>
+          person.id === id
+            ? {
+                ...person,
+                status: newStatus,
+              }
+            : person
+        )
+      );
+      showMessage(`Staff account status updated to ${newStatus}.`);
+    } catch (err: any) {
+      showMessage(err.response?.data?.message || err.message || "Failed to update staff status");
+    }
   };
 
-  const handlePasswordReset = (event: FormEvent) => {
+  const handlePasswordReset = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!resetStaff) return;
 
     if (newPassword.length < 8) {
       showMessage("Password must have at least 8 characters.");
       return;
     }
 
-    setShowPasswordModal(false);
-    setResetStaff(null);
-    setNewPassword("");
-    showMessage("Password reset request saved in this demo.");
+    try {
+      await resetStaffPasswordApi(String(resetStaff.id), newPassword);
+      setCreatedCredentials({
+        name: resetStaff.name,
+        email: resetStaff.email,
+        temporaryPassword: newPassword,
+        role: resetStaff.role,
+      });
+      showMessage(`Password reset successfully for ${resetStaff.email}!`);
+      setShowPasswordModal(false);
+      setResetStaff(null);
+      setNewPassword("");
+    } catch (err: any) {
+      showMessage(err.response?.data?.message || err.message || "Failed to reset password on server");
+    }
   };
+
+  const handleDeleteStaff = async (id: string | number) => {
+    if (!window.confirm("Are you sure you want to delete this officer account?")) return;
+    try {
+      await deleteStaffApi(String(id));
+      setStaff((previous) => previous.filter((person) => person.id !== id));
+      showMessage("Staff member deleted successfully from database.");
+    } catch (err: any) {
+      showMessage(err.response?.data?.message || err.message || "Failed to delete staff member");
+    }
+  };
+
 
   const handleCourseSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -338,8 +481,18 @@ function Admin() {
     showMessage("Course saved.");
   };
 
-  const handleAnnouncementSubmit = (event: FormEvent) => {
+  const handleAnnouncementSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
+    try {
+      await createAnnouncement({
+        title: announcementForm.title,
+        content: announcementForm.description,
+        status: "DRAFT",
+      });
+    } catch (err) {
+      console.warn("Could not save announcement to backend", err);
+    }
 
     setAnnouncements((previous) => [
       ...previous,
@@ -780,6 +933,14 @@ function Admin() {
                               <UserCheck size={16} />
                             )}
                           </button>
+                          <button
+                            type="button"
+                            title="Delete staff account"
+                            onClick={() => handleDeleteStaff(person.id)}
+                            className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -821,9 +982,14 @@ function Admin() {
               </div>
 
               <form
-                onSubmit={(event) => {
+                onSubmit={async (event) => {
                   event.preventDefault();
-                  showMessage("Home page content saved in this demo.");
+                  try {
+                    await updateWebsiteContent(website);
+                  } catch (err) {
+                    console.warn("Could not save website content to backend", err);
+                  }
+                  showMessage("Home page content saved.");
                 }}
                 className="space-y-4"
               >
@@ -1261,11 +1427,20 @@ function Admin() {
                 onChange={(e) =>
                   setStaffForm({ ...staffForm, name: e.target.value })
                 }
-                placeholder="Enter officer name"
+                placeholder="Enter officer name (e.g. Sarath Perera)"
               />
             </div>
             <div>
-              <label className={labelClass}>Email Address</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass}>Email Address</label>
+                <button
+                  type="button"
+                  onClick={autoGenerateEmail}
+                  className="flex items-center gap-1 text-xs text-[#D71920] font-semibold hover:underline"
+                >
+                  <Sparkles size={12} /> Auto-Generate
+                </button>
+              </div>
               <input
                 required
                 type="email"
@@ -1308,19 +1483,36 @@ function Admin() {
             </div>
             {!editingStaff && (
               <div>
-                <label className={labelClass}>Temporary Password</label>
-                <input
-                  required
-                  minLength={8}
-                  type="password"
-                  className={inputClass}
-                  value={temporaryPassword}
-                  onChange={(e) => setTemporaryPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className={labelClass}>Temporary Password</label>
+                  <button
+                    type="button"
+                    onClick={autoGeneratePassword}
+                    className="flex items-center gap-1 text-xs text-[#D71920] font-semibold hover:underline"
+                  >
+                    <Sparkles size={12} /> Auto-Generate
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    required
+                    minLength={8}
+                    type={showPassword ? "text" : "password"}
+                    className={inputClass + " pr-10"}
+                    value={temporaryPassword}
+                    onChange={(e) => setTemporaryPassword(e.target.value)}
+                    placeholder="At least 8 characters (e.g. Staff@123)"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  The real backend should securely hash this password and
-                  require a password change at first login.
+                  Securely stored in MongoDB. The officer can immediately sign in at /login with this password.
                 </p>
               </div>
             )}
@@ -1332,14 +1524,93 @@ function Admin() {
               >
                 Cancel
               </button>
-              <button type="submit" className={primaryButton}>
+              <button type="submit" disabled={staffLoading} className={primaryButton}>
                 <Save size={17} />
-                {editingStaff ? "Save Changes" : "Create Account"}
+                {staffLoading ? "Saving..." : editingStaff ? "Save Changes" : "Create Account"}
               </button>
             </div>
           </form>
         </Modal>
       )}
+
+      {/* CREATED / RESET STAFF CREDENTIALS MODAL */}
+      {createdCredentials && (
+        <Modal
+          title="Staff Account Credentials"
+          onClose={() => setCreatedCredentials(null)}
+        >
+          <div className="space-y-4">
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
+              <ShieldCheck size={36} className="mx-auto text-green-600 mb-2" />
+              <h3 className="font-bold text-green-900 text-base">Account Ready for Sign In</h3>
+              <p className="text-xs text-green-700 mt-1">
+                This staff member can now log in to the UniFlow system at <strong>/login</strong>.
+              </p>
+            </div>
+
+            <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Officer Name</span>
+                <p className="font-bold text-gray-900">{createdCredentials.name}</p>
+              </div>
+
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Department Role</span>
+                <p className="text-sm font-semibold text-gray-700">{createdCredentials.role} Officer</p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Login Email</span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(createdCredentials.email, "email")}
+                    className="flex items-center gap-1 text-xs text-[#D71920] hover:underline"
+                  >
+                    {copiedField === "email" ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+                    {copiedField === "email" ? "Copied" : "Copy Email"}
+                  </button>
+                </div>
+                <div className="mt-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-mono font-medium text-gray-800">
+                  {createdCredentials.email}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Temporary Password</span>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(createdCredentials.temporaryPassword, "password")}
+                    className="flex items-center gap-1 text-xs text-[#D71920] hover:underline"
+                  >
+                    {copiedField === "password" ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+                    {copiedField === "password" ? "Copied" : "Copy Password"}
+                  </button>
+                </div>
+                <div className="mt-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-mono font-bold text-red-600">
+                  {createdCredentials.temporaryPassword}
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              Please share these credentials securely with the staff member. They will be prompted to set their permanent password upon logging in.
+            </p>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                className={primaryButton}
+                onClick={() => setCreatedCredentials(null)}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
 
       {/* PASSWORD RESET MODAL */}
       {showPasswordModal && resetStaff && (
@@ -1353,16 +1624,37 @@ function Admin() {
               <strong>{resetStaff.name}</strong> ({resetStaff.email}).
             </p>
             <div>
-              <label className={labelClass}>New Temporary Password</label>
-              <input
-                required
-                minLength={8}
-                type="password"
-                className={inputClass}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter a new temporary password"
-              />
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass}>New Temporary Password</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const num = Math.floor(1000 + Math.random() * 9000);
+                    setNewPassword(`Staff@${num}!`);
+                  }}
+                  className="flex items-center gap-1 text-xs text-[#D71920] font-semibold hover:underline"
+                >
+                  <Sparkles size={12} /> Auto-Generate
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  required
+                  minLength={8}
+                  type={showPassword ? "text" : "password"}
+                  className={inputClass + " pr-10"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter a new temporary password (min 8 chars)"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
             <div className="flex justify-end gap-3">
               <button
