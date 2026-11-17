@@ -67,7 +67,7 @@ const aiMenu: MenuItem[] = [
 function Sidebar({
   isAuthenticated = false,
   userRole = null,
-  userName = "IJSE Member",
+  userName = "UniFlow Member",
 }: SidebarProps) {
   const navigate = useNavigate();
 
@@ -136,7 +136,7 @@ function Sidebar({
     if (isFinance) return "Finance Portal";
     if (isAdmin) return "Administration";
 
-    return "IJSE Member";
+    return "UniFlow Member";
   };
 
   return (
@@ -145,13 +145,13 @@ function Sidebar({
       {/* BRANDING */}
       <div className="shrink-0 border-b border-white/10 px-6 py-7">
         <h1 className="text-4xl font-black tracking-wider">
-          IJSE<span className="text-[#D71920]">.</span>
+          UniFlow<span className="text-[#D71920]">.</span>
         </h1>
 
         <div className="mt-3 h-1 w-12 rounded-full bg-[#D71920]" />
 
         <p className="mt-3 text-[11px] font-medium leading-relaxed tracking-wide text-[#A3A3A3]">
-          Sri Lanka's No. 1 Software Engineering Institute
+          University Management System
         </p>
       </div>
 
@@ -307,7 +307,7 @@ function Sidebar({
               Sign In
             </NavLink>
 
-            {/* Join IJSE */}
+            {/* Join UniFlow */}
             <div className="border-t border-white/10 pt-4">
               <div className="flex items-center gap-3 px-2">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#D71920]/20">
@@ -316,11 +316,11 @@ function Sidebar({
 
                 <div>
                   <p className="text-sm font-bold text-white">
-                    Join IJSE
+                    Join UniFlow
                   </p>
 
                   <p className="mt-1 text-[10px] text-[#737373]">
-                    Contact our Marketing Department
+                    University Management System
                   </p>
                 </div>
               </div>
@@ -330,7 +330,7 @@ function Sidebar({
 
         {/* Copyright */}
         <p className="mt-5 text-center text-[10px] text-[#737373]">
-          © 2026 IJSE. All rights reserved.
+          © 2026 UniFlow. All rights reserved.
         </p>
       </div>
     </aside>

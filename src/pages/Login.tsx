@@ -77,15 +77,18 @@ function Login() {
         <div className="hidden flex-col justify-between bg-[#171717] p-10 text-white md:flex">
           <div>
             <h1 className="text-5xl font-black tracking-wider">
-              IJSE<span className="text-[#D71920]">.</span>
+              UniFlow<span className="text-[#D71920]">.</span>
             </h1>
             <div className="mt-4 h-1 w-14 rounded-full bg-[#D71920]" />
+            <p className="mt-3 text-xs font-medium tracking-wide text-gray-400">
+              University Management System
+            </p>
           </div>
 
           <div>
             <GraduationCap size={48} className="mb-6 text-[#D71920]" />
             <h2 className="text-3xl font-bold leading-tight">
-              Welcome Back to IJSE
+              Welcome Back to UniFlow
             </h2>
             <p className="mt-4 text-sm leading-7 text-gray-400">
               Sign in to access your academic information, examination
@@ -94,15 +97,18 @@ function Login() {
           </div>
 
           <p className="text-xs text-gray-500">
-            Sri Lanka's No. 1 Software Engineering Institute
+            UniFlow - University Management System
           </p>
         </div>
 
         <div className="p-7 sm:p-10">
           <div className="mb-8 md:hidden">
             <h1 className="text-4xl font-black text-[#171717]">
-              IJSE<span className="text-[#D71920]">.</span>
+              UniFlow<span className="text-[#D71920]">.</span>
             </h1>
+            <p className="mt-2 text-xs font-medium text-gray-500">
+              University Management System
+            </p>
           </div>
 
           <p className="text-sm font-semibold text-[#D71920]">
@@ -208,7 +214,7 @@ function Login() {
             to="/dashboard"
             className="mt-6 block text-center text-xs text-gray-400 hover:text-[#D71920]"
           >
-            Back to IJSE website
+            Back to UniFlow website
           </Link>
         </div>
       </div>

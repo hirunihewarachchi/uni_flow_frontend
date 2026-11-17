@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   Users,
@@ -70,8 +71,8 @@ function Dashboard() {
         </h1>
 
         <p className="mt-2 text-sm text-[#737373]">
-          Welcome to IJSE Management System.
-          Here's an overview of your institute.
+          Welcome to UniFlow Management System.
+          Here's an overview of your university.
         </p>
       </div>
 
@@ -128,7 +129,7 @@ function Dashboard() {
               </h2>
 
               <p className="mt-1 text-xs text-[#737373]">
-                Latest updates from IJSE administration
+                Latest updates from UniFlow administration
               </p>
             </div>
           </div>
@@ -204,7 +205,7 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Institute Information */}
+        {/* University Information */}
         <div className="relative overflow-hidden rounded-xl bg-[#171717] p-7 text-white shadow-lg">
           {/* Red Decorative Accent */}
           <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full border-[25px] border-[#D71920]/20" />
@@ -212,17 +213,17 @@ function Dashboard() {
           <div className="relative flex h-full flex-col justify-between gap-8">
             <div>
               <p className="text-xs font-bold tracking-[0.2em] text-[#A3A3A3]">
-                INSTITUTE
+                UNIVERSITY
               </p>
 
               <h2 className="mt-4 text-4xl font-black tracking-wide">
-                IJSE<span className="text-[#D71920]">.</span>
+                UniFlow<span className="text-[#D71920]">.</span>
               </h2>
 
               <div className="mt-4 h-1 w-14 rounded-full bg-[#D71920]" />
 
               <p className="mt-4 text-sm leading-relaxed text-[#D4D4D4]">
-                Sri Lanka's No. 1 Software Engineering Institute
+                University Management System
               </p>
             </div>
 
@@ -236,7 +237,7 @@ function Dashboard() {
               </p>
 
               <p className="mt-2 text-xs text-[#737373]">
-                Empowering Future Software Engineers
+                Connecting Students, Academics & Administration
               </p>
             </div>
           </div>

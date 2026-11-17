@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from "react";
 import {
   GraduationCap,
@@ -72,7 +73,7 @@ function Enrollment() {
       {/* Page Heading */}
       <div>
         <p className="text-sm font-bold uppercase tracking-widest text-[#D71920]">
-          Join IJSE
+          Join UniFlow
         </p>
 
         <h1 className="mt-2 text-3xl font-bold text-[#171717]">
@@ -82,7 +83,7 @@ function Enrollment() {
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#737373]">
           Start your journey towards a successful career in software
           engineering. Complete the application form below to express
-          your interest in joining IJSE.
+          your interest in joining UniFlow.
         </p>
       </div>
 
@@ -151,7 +152,7 @@ function Enrollment() {
                   Application Submitted Successfully!
                 </p>
                 <p className="mt-1 text-xs leading-5 text-emerald-800">
-                  Your enrollment inquiry has been securely sent to the IJSE Marketing Department.
+                  Your enrollment inquiry has been securely sent to the UniFlow Marketing Department.
                   Our admissions counseling team will contact you shortly via email and phone.
                 </p>
               </div>
@@ -331,7 +332,7 @@ function Enrollment() {
               </h3>
 
               <label className="mb-2 block text-sm font-medium text-[#404040]">
-                Why are you interested in joining IJSE?
+                Why are you interested in joining UniFlow?
               </label>
 
               <textarea
@@ -379,7 +380,7 @@ function Enrollment() {
             </div>
 
             <h2 className="text-xl font-bold">
-              Begin Your Journey With IJSE
+              Begin Your Journey With UniFlow
             </h2>
 
             <p className="mt-3 text-sm leading-6 text-gray-300">

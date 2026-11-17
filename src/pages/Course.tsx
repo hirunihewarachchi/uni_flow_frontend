@@ -174,12 +174,11 @@ function Course() {
 
   return (
     <div className="space-y-10">
-
       {/* Page Heading */}
       <section className="relative overflow-hidden rounded-2xl bg-[#171717] px-8 py-12 text-white md:px-12">
         <div className="relative z-10 max-w-3xl">
           <span className="mb-4 inline-block rounded-full bg-[#D71920] px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-            IJSE Academic Programmes
+            UniFlow Academic Programmes
           </span>
 
           <h1 className="mb-4 text-3xl font-extrabold leading-tight md:text-5xl">
@@ -306,7 +305,6 @@ function Course() {
       {/* Selected Programme Details */}
       {selectedCourse && (
         <section className="overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white shadow-sm">
-
           {/* Programme Header */}
           <div className="border-b border-[#E5E5E5] p-6 md:p-8">
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
@@ -425,7 +423,7 @@ function Course() {
                   Interested in {selectedCourse.shortName}?
                 </h3>
                 <p className="mt-1 text-sm text-gray-400">
-                  Start your learning journey with IJSE.
+                  Start your learning journey with UniFlow.
                 </p>
               </div>
 
@@ -447,13 +445,12 @@ function Course() {
         </h3>
 
         <p className="mt-2 text-sm leading-7 text-gray-500">
-          Explore the available IJSE programmes and select the learning
+          Explore the available UniFlow programmes and select the learning
           pathway that matches your educational goals and career interests.
           Contact the institute for official syllabus, entry requirements,
           and programme details.
         </p>
       </section>
-
     </div>
   );
 }
