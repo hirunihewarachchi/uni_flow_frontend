@@ -10,6 +10,7 @@ import {
   GraduationCap,
   X,
   Menu,
+  ClipboardList,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuth";
@@ -335,12 +336,21 @@ function Navbar({ onSearch, onToggleSidebar }: NavbarProps) {
             )}
           </div>
         ) : (
-          <Link
-            to="/login"
-            className="flex items-center gap-2 rounded-xl bg-[#D71920] px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 hover:shadow-md"
-          >
-            Sign In
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/enrollment"
+              className="hidden sm:flex items-center gap-1.5 rounded-xl border border-[#D71920] px-4 py-2.5 text-xs font-bold text-[#D71920] transition hover:bg-red-50"
+            >
+              <ClipboardList size={15} />
+              Enroll Now
+            </Link>
+            <Link
+              to="/login"
+              className="flex items-center gap-2 rounded-xl bg-[#D71920] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 hover:shadow-md"
+            >
+              Sign In
+            </Link>
+          </div>
         )}
       </div>
     </header>

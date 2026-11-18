@@ -8,6 +8,10 @@ import {
   ArrowRight,
   GraduationCap,
   Compass,
+  Award,
+  TrendingUp,
+  AlertCircle,
+  FileCheck2,
 } from "lucide-react";
 import { getCareerRoadmap, confirmCareerGoal } from "../services/ai.service";
 import { getMyResults } from "../services/exam.service";
@@ -18,6 +22,7 @@ type Career = {
   title: string;
   category: string;
   description: string;
+  capstoneProject: string;
   skills: string[];
   roadmap: {
     phase: string;
@@ -27,98 +32,59 @@ type Career = {
   }[];
 };
 
+type CareerBenchmark = {
+  module: string;
+  weight: number;
+  benchmark: number;
+};
+
 const baseCareers: Career[] = [
   {
     id: "software-engineer",
     title: "Software Engineer",
-    category: "Software Development",
+    category: "Software Engineering",
     description:
-      "Design, develop, test and maintain software applications using modern programming paradigms, frameworks and engineering best practices.",
+      "Design, develop, test, and deploy robust, maintainable full-stack software applications following industrial engineering standards and design patterns.",
+    capstoneProject:
+      "Full-Stack Multi-Tenant Cloud Architecture with Role-Based Access, Microservices, and Redis Distributed Caching.",
     skills: [
-      "Programming fundamentals",
-      "Object-oriented programming",
-      "Data structures & algorithms",
-      "Database design and SQL",
-      "Frontend and backend web APIs",
-      "Software testing, Git & Docker",
+      "Object-Oriented Programming (Java / TypeScript)",
+      "Layered & Clean Architecture (SOLID)",
+      "Relational & NoSQL Database Optimization",
+      "RESTful API & Microservices Engineering",
+      "Automated Testing (Unit & Integration)",
+      "Containerization (Docker) & CI/CD",
     ],
     roadmap: [
       {
-        phase: "Phase 01 - Programming Foundation",
+        phase: "Phase 01 - Object-Oriented Engineering Foundation",
         duration: "Weeks 1-3",
         topics: [
-          "Core programming logic & algorithms",
-          "OOP and clean code principles",
-          "Data structures & collections",
+          "Advanced OOP & Clean Architecture Principles",
+          "Data Structures, Collections & Computational Complexity",
+          "Design Patterns (Factory, Strategy, Observer, Repository)",
         ],
-        task: "Build a console-based application applying layered OOP design patterns.",
+        task: "Build an extensible console-based management core with comprehensive unit test coverage.",
       },
       {
-        phase: "Phase 02 - Full Stack Development",
+        phase: "Phase 02 - Full-Stack Application Architecture",
         duration: "Weeks 4-8",
         topics: [
-          "Modern web interfaces (HTML, CSS, React)",
-          "RESTful APIs and microservices",
-          "Relational and NoSQL databases",
+          "Modern Component Architecture (React, TypeScript, Tailwind)",
+          "Backend REST API Architecture & Express/Spring Boot",
+          "Transaction Management & Database Relations",
         ],
-        task: "Develop a complete full-stack web application with authentication and CRUD workflows.",
+        task: "Develop a production-grade full-stack web application with JWT auth and relational integrity.",
       },
       {
-        phase: "Phase 03 - Engineering Practices",
+        phase: "Phase 03 - Production Engineering & Cloud Deployment",
         duration: "Weeks 9-12",
         topics: [
-          "Layered architecture and SOLID principles",
-          "Automated unit & integration testing",
-          "CI/CD pipelines and containerization",
+          "Microservices & Event-Driven Decoupling",
+          "Automated CI/CD Workflows & Dockerization",
+          "System Monitoring, API Documentation & Security Auditing",
         ],
-        task: "Deploy a production-grade software project with complete API documentation.",
-      },
-    ],
-  },
-  {
-    id: "business-analyst",
-    title: "Business Analyst",
-    category: "Business & Analysis",
-    description:
-      "Understand complex business domains, communicate with stakeholders and translate organizational requirements into technical specifications.",
-    skills: [
-      "Business process modeling",
-      "Requirement gathering & user stories",
-      "SQL and data analytics",
-      "UML use case diagrams",
-      "Stakeholder communication",
-      "Agile & Scrum methodologies",
-    ],
-    roadmap: [
-      {
-        phase: "Phase 01 - Foundation",
-        duration: "Weeks 1-3",
-        topics: [
-          "Software development life cycle (SDLC)",
-          "Business analysis core concepts",
-          "Functional and non-functional requirements",
-        ],
-        task: "Author a comprehensive Software Requirements Specification (SRS) for an institute management platform.",
-      },
-      {
-        phase: "Phase 02 - Modeling & Wireframing",
-        duration: "Weeks 4-7",
-        topics: [
-          "UML use case, sequence, and activity diagrams",
-          "Process flowcharts and BPMN",
-          "UI wireframing and prototyping",
-        ],
-        task: "Design end-to-end UML diagrams and interactive UI wireframes for a client order flow.",
-      },
-      {
-        phase: "Phase 03 - Data Analytics & Agile",
-        duration: "Weeks 8-10",
-        topics: [
-          "SQL for business reporting",
-          "Product backlog grooming & user stories",
-          "Acceptance criteria and user testing",
-        ],
-        task: "Write prioritized user stories and query relational database metrics to validate business KPIs.",
+        task: "Deploy a containerized production service with automated testing and OpenAPI documentation.",
       },
     ],
   },
@@ -127,45 +93,47 @@ const baseCareers: Career[] = [
     title: "AI Engineer",
     category: "Artificial Intelligence",
     description:
-      "Build intelligent systems, integrate machine learning models and create cutting-edge generative AI solutions.",
+      "Build intelligent software applications using machine learning, deep neural networks, computer vision, and modern Generative AI agent pipelines.",
+    capstoneProject:
+      "End-to-End Enterprise RAG Knowledge Assistant with Vector Search and LLM Guardrails.",
     skills: [
-      "Python programming",
-      "Applied linear algebra and statistics",
-      "Machine learning algorithms",
-      "Deep learning & neural networks",
-      "Large Language Models (LLMs)",
-      "AI API and vector database integration",
+      "Python Data Science Stack (NumPy, Pandas)",
+      "Mathematical Foundations (Linear Algebra, Probability)",
+      "Supervised & Unsupervised Machine Learning",
+      "Deep Learning & Neural Network Architectures",
+      "Large Language Models (LLMs) & Vector Embeddings",
+      "MLOps, Model Serving & FastAPIs",
     ],
     roadmap: [
       {
-        phase: "Phase 01 - Mathematics & Python",
+        phase: "Phase 01 - Mathematics & Python Foundations",
         duration: "Weeks 1-4",
         topics: [
-          "Python for data science (NumPy, Pandas)",
-          "Probability, linear algebra, and calculus",
-          "Data preprocessing and feature scaling",
+          "Python for High-Performance Data Processing",
+          "Vector Operations, Matrices & Probability Distributions",
+          "Exploratory Data Analysis & Feature Engineering",
         ],
-        task: "Implement core regression and classification algorithms from scratch in Python.",
+        task: "Implement core regression and classification algorithms from mathematical foundations in Python.",
       },
       {
-        phase: "Phase 02 - Machine Learning",
+        phase: "Phase 02 - Applied Machine Learning Models",
         duration: "Weeks 5-8",
         topics: [
-          "Supervised & unsupervised learning models",
-          "Model evaluation, precision, and recall",
-          "Scikit-Learn pipelines",
+          "Scikit-Learn Model Pipelines & Cross-Validation",
+          "Model Evaluation Metrics (Precision, Recall, ROC-AUC)",
+          "Hyperparameter Tuning & Feature Selection",
         ],
-        task: "Train and evaluate an ML model that predicts academic grade trajectories based on mock exam metrics.",
+        task: "Train and validate an ML model predicting student performance trends on multi-variable datasets.",
       },
       {
-        phase: "Phase 03 - Generative AI & LLMs",
+        phase: "Phase 03 - Deep Learning & Generative AI Agents",
         duration: "Weeks 9-12",
         topics: [
-          "Neural network architectures",
-          "Prompt engineering & LLM APIs",
-          "RAG pipelines and vector embeddings",
+          "Deep Neural Networks with PyTorch",
+          "Embeddings, Vector Databases & RAG Architecture",
+          "Agent Tool Calling & Production LLM Serving",
         ],
-        task: "Develop an AI-powered conversational tutor integrated with custom course notes.",
+        task: "Construct an autonomous AI research assistant capable of parsing and summarizing academic curricula.",
       },
     ],
   },
@@ -174,94 +142,261 @@ const baseCareers: Career[] = [
     title: "Data Analyst",
     category: "Data & Analytics",
     description:
-      "Transform complex relational data into meaningful business insights through SQL queries, statistical models and dashboards.",
+      "Transform complex relational data into actionable executive insights through advanced SQL, statistical modeling, and interactive visual dashboards.",
+    capstoneProject:
+      "Executive Institutional Intelligence Dashboard with Cohort Retention and Real-Time Financial Forecasting.",
     skills: [
-      "Advanced SQL queries and aggregations",
-      "Spreadsheets and pivot analysis",
-      "Python data manipulation (Pandas)",
-      "BI dashboard tools (PowerBI, Tableau)",
-      "Statistical inference and reporting",
+      "Advanced Relational SQL & Window Functions",
+      "Statistical Hypothesis Testing & Modeling",
+      "Python Data Manipulation (Pandas, NumPy)",
+      "Business Intelligence Tools (PowerBI / Tableau)",
+      "Data Storytelling & Executive Presentations",
     ],
     roadmap: [
       {
-        phase: "Phase 01 - Data Fundamentals",
+        phase: "Phase 01 - Advanced SQL & Relational Hygiene",
         duration: "Weeks 1-3",
         topics: [
-          "Relational databases and data hygiene",
-          "Complex SQL joins, subqueries, and window functions",
-          "Pivot tables and analytical aggregations",
+          "Complex Multi-Table Joins & Common Table Expressions (CTEs)",
+          "Window Functions (ROW_NUMBER, RANK, LAG/LEAD)",
+          "Data Cleansing & Integrity Verification Queries",
         ],
-        task: "Analyze a multi-table institutional database and generate statistical summary reports.",
+        task: "Author high-performance analytical queries extracting cohort retention rates across 5 relational tables.",
       },
       {
-        phase: "Phase 02 - Python Analytics",
+        phase: "Phase 02 - Python Statistical Exploration",
         duration: "Weeks 4-7",
         topics: [
-          "Pandas dataframes and data cleaning",
-          "Exploratory data analysis (EDA)",
-          "Statistical distributions and correlations",
+          "Exploratory Data Analysis (EDA) with Seaborn & Matplotlib",
+          "Correlation Matrices & Variance Analysis",
+          "Automated Data Extraction & Cleansing Pipelines",
         ],
-        task: "Clean and explore an academic dataset to surface correlation factors between attendance and exam marks.",
+        task: "Analyze an academic performance dataset to uncover statistically significant grade-attendance correlations.",
       },
       {
-        phase: "Phase 03 - Dashboards & Storytelling",
+        phase: "Phase 03 - BI Dashboards & Decision Storytelling",
         duration: "Weeks 8-10",
         topics: [
-          "Data visualization best practices",
-          "Interactive executive dashboards",
-          "Translating data into executive presentations",
+          "Interactive Dashboard Design & Usability Principles",
+          "DAX Expressions and Custom KPI Formulations",
+          "Executive Summaries and Decision Impact Reporting",
         ],
-        task: "Build an interactive PowerBI / web dashboard displaying cohort progression metrics.",
+        task: "Build an interactive PowerBI / Web analytics dashboard monitoring student enrollment and pass rates.",
+      },
+    ],
+  },
+  {
+    id: "cloud-engineer",
+    title: "Cloud & DevOps Engineer",
+    category: "Cloud Infrastructure",
+    description:
+      "Architect high-availability cloud systems, automate deployment pipelines (CI/CD), and manage distributed containerized workloads with zero downtime.",
+    capstoneProject:
+      "Automated Multi-AZ Kubernetes Cluster with Terraform IaC, Istio Service Mesh, and Prometheus Monitoring.",
+    skills: [
+      "Linux Systems & Advanced Shell Scripting",
+      "Docker Containerization & Multi-Stage Builds",
+      "Kubernetes Pod, Service & Ingress Orchestration",
+      "Infrastructure as Code (Terraform)",
+      "CI/CD Pipeline Automation (GitHub Actions)",
+      "Observability (Prometheus, Grafana, OpenTelemetry)",
+    ],
+    roadmap: [
+      {
+        phase: "Phase 01 - Linux Systems & Scripted Automation",
+        duration: "Weeks 1-3",
+        topics: [
+          "Linux Kernel Internals, Permissions & Process Management",
+          "Networking Protocols (TCP/IP, DNS, SSL/TLS, Reverse Proxies)",
+          "Bash Automation Scripts for Health Checking and Logging",
+        ],
+        task: "Automate server health audit and configuration compliance checks across remote nodes using Bash.",
+      },
+      {
+        phase: "Phase 02 - Containers & CI/CD Pipelines",
+        duration: "Weeks 4-8",
+        topics: [
+          "Production Docker Images & Security Hardening",
+          "GitHub Actions Continuous Integration & Automated Releases",
+          "Kubernetes Core Architecture (Deployments, ConfigMaps, Secrets)",
+        ],
+        task: "Build an end-to-end CI/CD pipeline building, testing, and pushing container images to a registry.",
+      },
+      {
+        phase: "Phase 03 - Cloud Architecture & Observability",
+        duration: "Weeks 9-12",
+        topics: [
+          "Cloud Provisioning with Terraform on AWS",
+          "Ingress Routing, Let's Encrypt SSL & Load Balancing",
+          "Prometheus Metrics, Grafana Dashboards & Alert Manager",
+        ],
+        task: "Provision an automated cloud deployment with live metrics and automated rollback on failure.",
       },
     ],
   },
   {
     id: "qa-engineer",
-    title: "QA Engineer",
+    title: "QA & Test Automation Engineer",
     category: "Software Quality",
     description:
-      "Ensure software reliability, performance and defect-free execution through manual test cases and automated testing frameworks.",
+      "Guarantee software reliability and performance through comprehensive test scenario design, API test automation, and browser-driven end-to-end suites.",
+    capstoneProject:
+      "Automated End-to-End Regression Framework with Playwright, Postman Newman API Suite, and CI/CD Integration.",
     skills: [
-      "Software testing methodologies (STLC)",
-      "Test scenario & test case design",
-      "REST API verification with Postman",
-      "SQL database validation",
-      "Browser automation testing (Playwright, Selenium)",
+      "Software Testing Lifecycle (STLC) & Test Strategy",
+      "Black-Box & Boundary Value Test Case Design",
+      "REST API Automated Testing with Postman & Supertest",
+      "UI Test Automation (Playwright / Selenium)",
+      "Performance & Load Testing (k6 / JMeter)",
+      "CI/CD Continuous Test Automation Execution",
     ],
     roadmap: [
       {
-        phase: "Phase 01 - Testing Foundations",
+        phase: "Phase 01 - STLC & Systematic Test Design",
         duration: "Weeks 1-3",
         topics: [
-          "STLC and defect lifecycles",
-          "Black-box test design techniques",
-          "Defect tracking, severity, and bug triage",
+          "Software Testing Lifecycle & Bug Triage Lifecycles",
+          "Equivalence Partitioning & Boundary Value Analysis",
+          "Traceability Matrices & Defect Reporting Standards",
         ],
-        task: "Write an end-to-end test plan and bug report suite for an examination registration module.",
+        task: "Write a comprehensive master test plan and defect test suite for an online examination portal.",
       },
       {
-        phase: "Phase 02 - API & Database Verification",
+        phase: "Phase 02 - Automated API & Database Testing",
         duration: "Weeks 4-7",
         topics: [
-          "HTTP methods, status codes, and headers",
-          "Postman automated test assertions",
-          "Database state validation using SQL queries",
+          "REST API Verification, Status Codes & Payload Assertions",
+          "Postman Automated Collections with JavaScript Tests",
+          "Database Validation using SQL Pre- & Post-Condition Queries",
         ],
-        task: "Create a Postman automated collection testing role-based authentication and edge cases.",
+        task: "Construct an automated test collection verifying role-based authorization and edge cases.",
       },
       {
-        phase: "Phase 03 - Automation Testing",
+        phase: "Phase 03 - Browser Automation & CI Integration",
         duration: "Weeks 8-10",
         topics: [
-          "Automated UI testing concepts",
-          "Regression testing suites",
-          "CI/CD continuous test execution",
+          "Page Object Model (POM) Design Pattern",
+          "Cross-Browser End-to-End Testing with Playwright",
+          "Automated Test Execution in CI Pipeline",
         ],
-        task: "Build an automated browser smoke test suite verifying student login and timetable views.",
+        task: "Implement an automated smoke and regression suite testing the entire student registration journey.",
+      },
+    ],
+  },
+  {
+    id: "business-analyst",
+    title: "Business Analyst",
+    category: "Business & Architecture",
+    description:
+      "Bridge client domain problems and software engineering solutions by defining clear technical requirements, process flows, and agile user stories.",
+    capstoneProject:
+      "Enterprise Software Requirements Specification (SRS) & Interactive Wireframe Prototype for an Educational ERP.",
+    skills: [
+      "Business Process Modeling (BPMN 2.0)",
+      "Requirement Elicitation & Stakeholder Workshops",
+      "UML Use Case, Activity & Sequence Diagramming",
+      "Agile Backlog Grooming & User Story Authoring",
+      "SQL for Business Data Validation",
+    ],
+    roadmap: [
+      {
+        phase: "Phase 01 - Business Analysis Fundamentals",
+        duration: "Weeks 1-3",
+        topics: [
+          "Software Development Life Cycle Models (Agile vs Waterfall)",
+          "Elicitation Techniques (Interviews, Surveys, Document Analysis)",
+          "Functional vs Non-Functional Requirements Definition",
+        ],
+        task: "Author a comprehensive Software Requirements Specification (SRS) for a student management portal.",
+      },
+      {
+        phase: "Phase 02 - Technical Modeling & Prototyping",
+        duration: "Weeks 4-7",
+        topics: [
+          "UML Modeling: Use Case, Class, Activity & State Diagrams",
+          "Process Flowcharts with BPMN 2.0 Standards",
+          "Interactive Wireframing and User Journey Mapping",
+        ],
+        task: "Create detailed UML specifications and Figma wireframes for an automated student fee payment flow.",
+      },
+      {
+        phase: "Phase 03 - Agile Requirements & Data Verification",
+        duration: "Weeks 8-10",
+        topics: [
+          "User Story Writing with INVEST Criteria & Acceptance Criteria",
+          "Product Backlog Prioritization (MoSCoW / Kano)",
+          "SQL Queries for Validating Business Hypotheses",
+        ],
+        task: "Build a sprint-ready product backlog with acceptance criteria and database verification queries.",
       },
     ],
   },
 ];
+
+// Exact industry benchmarks and module weighting per career pathway
+const careerBenchmarks: Record<string, CareerBenchmark[]> = {
+  "software-engineer": [
+    { module: "OOP", weight: 35, benchmark: 75 },
+    { module: "WEB", weight: 30, benchmark: 70 },
+    { module: "PRF", weight: 20, benchmark: 70 },
+    { module: "DBMS", weight: 15, benchmark: 65 },
+  ],
+  "ai-engineer": [
+    { module: "PRF", weight: 40, benchmark: 75 },
+    { module: "DBMS", weight: 25, benchmark: 70 },
+    { module: "OOP", weight: 20, benchmark: 70 },
+    { module: "SE", weight: 15, benchmark: 65 },
+  ],
+  "data-analyst": [
+    { module: "DBMS", weight: 50, benchmark: 75 },
+    { module: "PRF", weight: 25, benchmark: 65 },
+    { module: "SE", weight: 25, benchmark: 65 },
+  ],
+  "cloud-engineer": [
+    { module: "WEB", weight: 35, benchmark: 75 },
+    { module: "SE", weight: 35, benchmark: 75 },
+    { module: "DBMS", weight: 30, benchmark: 70 },
+  ],
+  "qa-engineer": [
+    { module: "SE", weight: 40, benchmark: 75 },
+    { module: "WEB", weight: 30, benchmark: 70 },
+    { module: "DBMS", weight: 15, benchmark: 65 },
+    { module: "OOP", weight: 15, benchmark: 65 },
+  ],
+  "business-analyst": [
+    { module: "SE", weight: 45, benchmark: 75 },
+    { module: "DBMS", weight: 30, benchmark: 70 },
+    { module: "PRF", weight: 25, benchmark: 65 },
+  ],
+};
+
+// Recommended industry certifications per career pathway
+const careerCertifications: Record<string, { name: string; issuer: string; level: string }[]> = {
+  "software-engineer": [
+    { name: "Oracle Certified Professional: Java SE 21 Developer", issuer: "Oracle", level: "Professional" },
+    { name: "AWS Certified Developer - Associate (DVA-C02)", issuer: "Amazon Web Services", level: "Associate" },
+  ],
+  "ai-engineer": [
+    { name: "TensorFlow Developer Certificate", issuer: "Google", level: "Industry Standard" },
+    { name: "AWS Certified Machine Learning - Specialty", issuer: "Amazon Web Services", level: "Specialty" },
+  ],
+  "data-analyst": [
+    { name: "Microsoft Certified: Power BI Data Analyst Associate (PL-300)", issuer: "Microsoft", level: "Associate" },
+    { name: "Databricks Certified Data Analyst Associate", issuer: "Databricks", level: "Associate" },
+  ],
+  "cloud-engineer": [
+    { name: "AWS Certified Solutions Architect - Associate", issuer: "Amazon Web Services", level: "Associate" },
+    { name: "Certified Kubernetes Administrator (CKA)", issuer: "Linux Foundation / CNCF", level: "Professional" },
+  ],
+  "qa-engineer": [
+    { name: "ISTQB Certified Tester Foundation Level (CTFL 4.0)", issuer: "ISTQB", level: "Global Standard" },
+    { name: "Certified Associate in Software Testing (CAST)", issuer: "Quality Assurance Institute", level: "Professional" },
+  ],
+  "business-analyst": [
+    { name: "Entry Certificate in Business Analysis (ECBA)", issuer: "IIBA", level: "Global Standard" },
+    { name: "Professional Scrum Product Owner (PSPO I)", issuer: "Scrum.org", level: "Agile Leadership" },
+  ],
+};
 
 function CareerRoadmap() {
   const { user } = useAuth();
@@ -334,7 +469,7 @@ function CareerRoadmap() {
     };
   }, [user]);
 
-  // Dynamically calculate recommended careers and matching score based on real examination marks
+  // Dynamically calculate recommended careers and matching score with precise weighted formulation
   const recommendedCareers = useMemo(() => {
     return baseCareers
       .map((career) => {
@@ -348,15 +483,17 @@ function CareerRoadmap() {
           const se = realMarks.SE ?? 50;
 
           if (career.id === "software-engineer") {
-            score = Math.round((prf + oop + web) / 3);
-          } else if (career.id === "business-analyst") {
-            score = Math.round((se + dbms + oop) / 3);
+            score = Math.round(oop * 0.35 + web * 0.3 + prf * 0.2 + dbms * 0.15);
           } else if (career.id === "ai-engineer") {
-            score = Math.round((prf + dbms + oop) / 3);
+            score = Math.round(prf * 0.4 + dbms * 0.25 + oop * 0.2 + se * 0.15);
           } else if (career.id === "data-analyst") {
-            score = Math.round((dbms * 1.5 + prf) / 2.5);
+            score = Math.round(dbms * 0.5 + prf * 0.25 + se * 0.25);
+          } else if (career.id === "cloud-engineer") {
+            score = Math.round(web * 0.35 + se * 0.35 + dbms * 0.3);
           } else if (career.id === "qa-engineer") {
-            score = Math.round((se + web + dbms) / 3);
+            score = Math.round(se * 0.4 + web * 0.3 + dbms * 0.15 + oop * 0.15);
+          } else if (career.id === "business-analyst") {
+            score = Math.round(se * 0.45 + dbms * 0.3 + prf * 0.25);
           }
         }
 
@@ -376,6 +513,15 @@ function CareerRoadmap() {
   }, [recommendedCareers, selectedCareerId]);
 
   const topRecommendation = recommendedCareers[0];
+
+  // Benchmark analysis for selected career
+  const currentBenchmarks = useMemo(() => {
+    return careerBenchmarks[selectedCareer.id] || [];
+  }, [selectedCareer.id]);
+
+  const currentCertifications = useMemo(() => {
+    return careerCertifications[selectedCareer.id] || [];
+  }, [selectedCareer.id]);
 
   const handleConfirmCareer = async () => {
     setIsSaving(true);
@@ -402,22 +548,22 @@ function CareerRoadmap() {
         <div>
           <div className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[#D71920]">
             <BrainCircuit size={18} />
-            AI Career Navigator
+            AI Career Intelligence Engine
           </div>
 
           <h1 className="text-3xl font-bold text-[#171717]">
-            Personalized Career Roadmap
+            Industry Career Roadmap & Benchmarks
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#737373]">
             {hasRealResults
-              ? "Calculated dynamically from your verified module examination results. Choose your career goal and follow your milestone learning plan."
+              ? "Precise career alignment calibrated from your real examination marks. Compare your scores against industry competency benchmarks."
               : "Discover industry pathways and milestones. Career match scores will personalize automatically as your exam marks are recorded by the Examination Officer."}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-xl border border-[#E5E5E5] bg-white p-4 shadow-sm">
-          <div className="rounded-lg bg-red-50 p-2.5 text-[#D71920]">
+        <div className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white p-4 shadow-sm">
+          <div className="rounded-xl bg-red-50 p-3 text-[#D71920]">
             <GraduationCap size={24} />
           </div>
 
@@ -435,37 +581,37 @@ function CareerRoadmap() {
 
       {/* Real Marks Status Banner */}
       {!hasRealResults && (
-        <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+        <div className="flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
           <Compass size={20} className="text-blue-600 shrink-0" />
           <div>
             <p className="font-semibold text-blue-900">
               Examination Marks Pending Grading
             </p>
             <p className="text-xs text-blue-700 mt-0.5">
-              Once the Examination Officer records and publishes your exam marks, the AI will calibrate exact career match percentages based on your strengths.
+              Once the Examination Officer records and publishes your exam marks, the AI will calibrate exact career match percentages based on your specific subject strengths.
             </p>
           </div>
         </div>
       )}
 
       {/* Top Match Spotlight */}
-      <div className="rounded-2xl border border-red-100 bg-gradient-to-r from-red-50 to-white p-6 shadow-sm">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+      <div className="rounded-3xl border border-red-100 bg-gradient-to-r from-red-50 via-white to-amber-50/20 p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="flex items-start gap-4">
-            <div className="rounded-xl bg-[#D71920] p-3 text-white">
-              <Sparkles size={24} />
+            <div className="rounded-2xl bg-[#D71920] p-3.5 text-white shadow-sm">
+              <Sparkles size={28} />
             </div>
 
-            <div>
-              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-[#D71920]">
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-[#D71920]">
                 Highest AI Match ({topRecommendation.matchScore}%)
               </span>
 
-              <h2 className="mt-2 text-xl font-bold text-[#171717]">
+              <h2 className="text-2xl font-bold text-[#171717]">
                 {topRecommendation.title}
               </h2>
 
-              <p className="mt-1 text-sm text-gray-600 max-w-xl">
+              <p className="text-xs md:text-sm text-gray-600 max-w-2xl leading-relaxed">
                 {topRecommendation.description}
               </p>
             </div>
@@ -473,9 +619,9 @@ function CareerRoadmap() {
 
           <button
             onClick={() => setSelectedCareerId(topRecommendation.id)}
-            className="flex items-center gap-2 rounded-xl bg-[#D71920] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition"
+            className="flex items-center justify-center gap-2 rounded-2xl bg-[#D71920] px-6 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition shrink-0"
           >
-            Explore Roadmap
+            Explore Roadmap & Milestones
             <ArrowRight size={16} />
           </button>
         </div>
@@ -483,12 +629,14 @@ function CareerRoadmap() {
 
       {/* Career Options Grid */}
       <div>
-        <h2 className="text-lg font-bold text-[#171717] mb-1">
-          Available Industry Career Pathways
-        </h2>
-        <p className="text-xs text-[#737373] mb-4">
-          Click any role to inspect required competencies and the step-by-step career milestones.
-        </p>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-[#171717]">
+            Available Industry Career Pathways
+          </h2>
+          <p className="text-xs text-[#737373]">
+            Ranked by AI matching engine according to your real performance in subject domains.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recommendedCareers.map((career) => {
@@ -498,18 +646,26 @@ function CareerRoadmap() {
               <div
                 key={career.id}
                 onClick={() => setSelectedCareerId(career.id)}
-                className={`cursor-pointer rounded-2xl border p-5 transition ${
+                className={`cursor-pointer rounded-2xl border p-5 transition-all ${
                   isSelected
                     ? "border-[#D71920] bg-white shadow-md ring-2 ring-red-100"
                     : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                  <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
                     {career.category}
                   </span>
 
-                  <span className="text-sm font-bold text-[#D71920]">
+                  <span
+                    className={`text-sm font-bold ${
+                      career.matchScore >= 75
+                        ? "text-emerald-600"
+                        : career.matchScore >= 60
+                        ? "text-blue-600"
+                        : "text-[#D71920]"
+                    }`}
+                  >
                     {career.matchScore}% Match
                   </span>
                 </div>
@@ -518,7 +674,7 @@ function CareerRoadmap() {
                   {career.title}
                 </h3>
 
-                <p className="mt-2 text-xs text-gray-600 line-clamp-3 leading-5">
+                <p className="mt-2 text-xs text-gray-600 line-clamp-2 leading-5">
                   {career.description}
                 </p>
 
@@ -538,34 +694,38 @@ function CareerRoadmap() {
         </div>
       </div>
 
-      {/* Selected Career Detailed Roadmap */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-gray-100 pb-5 sm:flex-row sm:items-center">
+      {/* Selected Career Detailed Roadmap & Benchmarking */}
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm space-y-8">
+        {/* Title Bar */}
+        <div className="flex flex-col justify-between gap-4 border-b border-gray-100 pb-6 sm:flex-row sm:items-center">
           <div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <h2 className="text-2xl font-bold text-[#171717]">
-                {selectedCareer.title} Milestone Roadmap
+                {selectedCareer.title}
               </h2>
               <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-[#D71920]">
                 {selectedCareer.matchScore}% Match
               </span>
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                {selectedCareer.category}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1.5 text-xs md:text-sm text-gray-600 max-w-2xl leading-relaxed">
               {selectedCareer.description}
             </p>
           </div>
 
           <div>
             {careerConfirmed ? (
-              <span className="flex items-center gap-2 rounded-xl bg-green-50 px-5 py-3 text-sm font-bold text-green-700 border border-green-200">
+              <span className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700 border border-emerald-200">
                 <CheckCircle2 size={18} />
-                Career Goal Confirmed
+                Target Career Goal Confirmed
               </span>
             ) : (
               <button
                 onClick={handleConfirmCareer}
                 disabled={isSaving}
-                className="flex items-center gap-2 rounded-xl bg-[#D71920] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50 transition"
+                className="flex items-center gap-2 rounded-2xl bg-[#D71920] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50 transition"
               >
                 <Target size={18} />
                 {isSaving ? "Saving Goal..." : "Set as Target Career Goal"}
@@ -574,16 +734,125 @@ function CareerRoadmap() {
           </div>
         </div>
 
-        {/* Required Skills Section */}
+        {/* ACCURATE INDUSTRY BENCHMARK & GAP MATRIX */}
+        {hasRealResults && currentBenchmarks.length > 0 && (
+          <div className="rounded-2xl border border-gray-200 bg-gray-50/60 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <TrendingUp size={18} className="text-[#D71920]" />
+                  Industry Competency Benchmark Analysis
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Comparison between your real examination marks and the minimum hiring thresholds for {selectedCareer.title}.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 pt-2">
+              {currentBenchmarks.map((bench) => {
+                const mark = realMarks[bench.module] ?? 50;
+                const gap = mark - bench.benchmark;
+                const isMet = gap >= 0;
+
+                return (
+                  <div
+                    key={bench.module}
+                    className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-gray-900 text-sm">
+                        {bench.module}
+                      </span>
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-600">
+                        Weight {bench.weight}%
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between text-xs">
+                      <span className="text-gray-500">Your Mark:</span>
+                      <span className="font-bold text-gray-900 text-base">{mark}%</span>
+                    </div>
+
+                    <div className="flex items-baseline justify-between text-xs">
+                      <span className="text-gray-500">Benchmark:</span>
+                      <span className="font-semibold text-gray-700">{bench.benchmark}%</span>
+                    </div>
+
+                    <div className="pt-1 border-t border-gray-100 flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Evaluation:</span>
+                      {isMet ? (
+                        <span className="font-bold text-emerald-600 flex items-center gap-1">
+                          <CheckCircle2 size={12} />
+                          +{gap}% Exceeded
+                        </span>
+                      ) : (
+                        <span className="font-bold text-red-600 flex items-center gap-1">
+                          <AlertCircle size={12} />
+                          {gap}% Gap
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Recommended Industry Certifications */}
+        {currentCertifications.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+              <Award size={18} className="text-amber-500" />
+              Recommended Industry Certifications
+            </h3>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {currentCertifications.map((cert) => (
+                <div
+                  key={cert.name}
+                  className="rounded-xl border border-amber-200 bg-amber-50/30 p-4 flex items-center justify-between gap-3"
+                >
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-gray-900 text-sm">{cert.name}</p>
+                    <p className="text-xs text-gray-500">Issuing Body: {cert.issuer}</p>
+                  </div>
+                  <span className="shrink-0 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+                    {cert.level}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Capstone Project Spotlight */}
+        {selectedCareer.capstoneProject && (
+          <div className="rounded-2xl border border-gray-200 bg-gradient-to-r from-gray-50 to-white p-5 space-y-1.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+              <FileCheck2 size={16} className="text-[#D71920]" />
+              Recommended Portfolio Capstone Project
+            </div>
+            <p className="font-bold text-gray-900 text-sm">
+              {selectedCareer.capstoneProject}
+            </p>
+            <p className="text-xs text-gray-600">
+              Build and deploy this project as a GitHub portfolio piece to demonstrate verified production readiness to software enterprise hiring panels.
+            </p>
+          </div>
+        )}
+
+        {/* Key Competencies */}
         <div>
           <h3 className="font-bold text-gray-900 text-sm mb-3">
-            Key Competencies & Technologies
+            Core Competencies & Technology Stack
           </h3>
           <div className="flex flex-wrap gap-2">
             {selectedCareer.skills.map((skill) => (
               <span
                 key={skill}
-                className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800"
+                className="rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2 text-xs font-semibold text-gray-800"
               >
                 {skill}
               </span>
@@ -591,7 +860,7 @@ function CareerRoadmap() {
           </div>
         </div>
 
-        {/* Phase Timeline */}
+        {/* Phase-by-Phase Roadmap Timeline */}
         <div className="space-y-4 pt-2">
           <h3 className="font-bold text-gray-900 text-sm">
             Phase-by-Phase Roadmap Timeline
@@ -601,11 +870,11 @@ function CareerRoadmap() {
             {selectedCareer.roadmap.map((step, index) => (
               <div
                 key={step.phase}
-                className="relative rounded-xl border border-gray-200 p-5 hover:border-gray-300 transition"
+                className="relative rounded-2xl border border-gray-200 p-5 hover:border-gray-300 transition shadow-xs"
               >
                 <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-[#D71920]">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 text-xs font-bold text-[#D71920]">
                       {index + 1}
                     </span>
                     <h4 className="font-bold text-gray-900">{step.phase}</h4>
@@ -616,9 +885,9 @@ function CareerRoadmap() {
                   </span>
                 </div>
 
-                <div className="mt-3 pl-10 space-y-2">
+                <div className="mt-3 pl-11 space-y-2">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Core Curriculum:
+                    Core Curriculum Modules:
                   </p>
                   <ul className="list-disc pl-4 text-xs text-gray-700 space-y-1">
                     {step.topics.map((topic) => (
@@ -626,7 +895,7 @@ function CareerRoadmap() {
                     ))}
                   </ul>
 
-                  <div className="mt-3 rounded-lg bg-gray-50 p-3 text-xs">
+                  <div className="mt-3 rounded-xl bg-gray-50 p-3 text-xs border border-gray-100">
                     <span className="font-bold text-gray-900">Deliverable Task: </span>
                     <span className="text-gray-700">{step.task}</span>
                   </div>

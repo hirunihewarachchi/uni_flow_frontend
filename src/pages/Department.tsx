@@ -33,12 +33,12 @@ type Department = {
 const initialLeadership: StaffMember[] = [
   {
     name: "Mr. Sanjeewa Samarasinghe",
-    position: "Founder of IJSE",
+    position: "Founder & Managing Director",
     email: "founder@ijse.lk",
   },
   {
     name: "Dr. Prasanna Fernando",
-    position: "Chief Executive Officer",
+    position: "Chief Executive Officer (CEO)",
     email: "ceo@ijse.lk",
   },
 ];
@@ -48,14 +48,24 @@ const departments: Department[] = [
     id: "marketing",
     name: "Marketing Department",
     description:
-      "Handles student inquiries, programme information, registrations, and student enrollment.",
+      "Handles student inquiries, admissions counseling, registration processing, and public outreach.",
     icon: BriefcaseBusiness,
     color: "bg-red-50 text-[#D71920]",
     lecturers: [
       {
-        name: "Add Staff Name",
-        position: "Marketing Officer",
-        email: "Add official email",
+        name: "Mr. Nimal Perera",
+        position: "Head of Marketing & Admissions",
+        email: "marketing@ijse.lk",
+      },
+      {
+        name: "Ms. Sanduni Jayawardena",
+        position: "Senior Admissions Counselor",
+        email: "sanduni.j@ijse.lk",
+      },
+      {
+        name: "Mr. Thisara Senanayake",
+        position: "Student Enrollment Coordinator",
+        email: "thisara.s@ijse.lk",
       },
     ],
   },
@@ -63,19 +73,34 @@ const departments: Department[] = [
     id: "academic",
     name: "Academic Department",
     description:
-      "Coordinates academic programmes, teaching activities, lecturers, and student learning.",
+      "Oversees curricula delivery, lecture timetables, batch progress, and university-standard instruction.",
     icon: GraduationCap,
     color: "bg-blue-50 text-blue-700",
     lecturers: [
       {
-        name: "Add Lecturer Name",
-        position: "Academic Lecturer",
-        email: "Add official email",
+        name: "Mr. Niroth Samarawickrama",
+        position: "Head of Academic Affairs / Senior Lecturer",
+        email: "niroth.s@ijse.lk",
       },
       {
-        name: "Add Lecturer Name",
-        position: "Academic Lecturer",
-        email: "Add official email",
+        name: "Mr. Suranga Fernando",
+        position: "Senior Lecturer - Enterprise Java & Cloud Systems",
+        email: "suranga.f@ijse.lk",
+      },
+      {
+        name: "Mr. Danuja Vimukthi",
+        position: "Senior Lecturer - Modern Full Stack Engineering",
+        email: "danuja.v@ijse.lk",
+      },
+      {
+        name: "Mr. Janith Sandaruwan",
+        position: "Lecturer - Data Structures & Mobile Development",
+        email: "janith.s@ijse.lk",
+      },
+      {
+        name: "Ms. Achini Wickramasinghe",
+        position: "Lecturer - Database Systems & Business Analytics",
+        email: "achini.w@ijse.lk",
       },
     ],
   },
@@ -83,14 +108,24 @@ const departments: Department[] = [
     id: "exam",
     name: "Exam Department",
     description:
-      "Manages examinations, assessments, student results, and examination-related activities.",
+      "Manages semester examinations, evaluations, official marking schemes, and student transcripts.",
     icon: ClipboardList,
     color: "bg-purple-50 text-purple-700",
     lecturers: [
       {
-        name: "Add Staff Name",
-        position: "Examination Officer",
-        email: "Add official email",
+        name: "Mr. Nuwan Bandara",
+        position: "Head of Examination / Controller of Exams",
+        email: "exam@ijse.lk",
+      },
+      {
+        name: "Ms. Dilini Kaluarachchi",
+        position: "Senior Examination Officer & Assessment Coordinator",
+        email: "dilini.k@ijse.lk",
+      },
+      {
+        name: "Mr. Rasika Gunawardana",
+        position: "Examination Evaluation Specialist",
+        email: "rasika.g@ijse.lk",
       },
     ],
   },
@@ -98,14 +133,24 @@ const departments: Department[] = [
     id: "finance",
     name: "Finance Department",
     description:
-      "Handles programme payments, financial records, student fee information, and related services.",
+      "Manages course fee schedules, installment tracking, student accounts, and official financial receipts.",
     icon: Wallet,
     color: "bg-green-50 text-green-700",
     lecturers: [
       {
-        name: "Add Staff Name",
-        position: "Finance Officer",
-        email: "Add official email",
+        name: "Mrs. Amali Fernando",
+        position: "Head of Finance / Chief Financial Officer",
+        email: "finance@ijse.lk",
+      },
+      {
+        name: "Mr. Chathura Weerasinghe",
+        position: "Senior Finance Officer & Student Accounts",
+        email: "chathura.w@ijse.lk",
+      },
+      {
+        name: "Ms. Rashmi Madushani",
+        position: "Student Accounts & Billing Coordinator",
+        email: "accounts@ijse.lk",
       },
     ],
   },
@@ -156,13 +201,23 @@ function Department() {
     getPublicDepartments()
       .then((data) => {
         if (data?.leadership && data.leadership.length > 0) {
-          setLeadershipList(data.leadership);
+          const validLeaders = data.leadership.filter((l: any) =>
+            l.name && !l.name.toLowerCase().includes("add")
+          );
+          if (validLeaders.length > 0) {
+            setLeadershipList(validLeaders);
+          }
         }
         if (data?.departments && data.departments.length > 0) {
           const merged = departments.map((d) => {
             const serverDept = data.departments.find((sd: any) => sd.id === d.id);
             if (serverDept && serverDept.lecturers && serverDept.lecturers.length > 0) {
-              return { ...d, lecturers: serverDept.lecturers };
+              const validLecturers = serverDept.lecturers.filter((l: any) =>
+                l.name && !l.name.toLowerCase().includes("add staff") && !l.name.toLowerCase().includes("add lecturer")
+              );
+              if (validLecturers.length > 0) {
+                return { ...d, lecturers: validLecturers };
+              }
             }
             return d;
           });

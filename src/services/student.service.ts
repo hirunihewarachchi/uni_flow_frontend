@@ -13,6 +13,7 @@ export interface StudentRegistrationPayload {
     totalCourseFee?: number;
     initialPayment?: number;
     password?: string;
+    admissionRequestId?: string;
 }
 
 export const registerStudentByMarketing = async (data: StudentRegistrationPayload) => {

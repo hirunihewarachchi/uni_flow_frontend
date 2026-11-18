@@ -15,6 +15,7 @@ import { submitAdmissionInquiry } from "../services/admission.service";
 
 function Enrollment() {
   const [submitted, setSubmitted] = useState(false);
+  const [submittedRef, setSubmittedRef] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,14 +37,24 @@ function Enrollment() {
     setLoading(true);
 
     try {
-      await submitAdmissionInquiry({
+      const res = await submitAdmissionInquiry({
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        address: formData.address,
+        courseCode: formData.programInterest,
         programInterest: formData.programInterest,
+        preferredIntake: formData.intake,
+        qualification: formData.qualification,
+        statement: formData.message,
         branchPreference: "Panadura",
-        message: `${formData.qualification} qualification. Intake: ${formData.intake}. Address: ${formData.address}. Note: ${formData.message}`,
+        message: formData.message,
       });
+
+      if (res?.data?.referenceNo) {
+        setSubmittedRef(res.data.referenceNo);
+      }
       setSubmitted(true);
       setFormData({
         fullName: "",
@@ -145,16 +156,24 @@ function Enrollment() {
           </div>
 
           {submitted && (
-            <div className="mb-6 flex gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle2 className="shrink-0 text-emerald-700" size={21} />
-              <div>
-                <p className="text-sm font-semibold text-emerald-900">
-                  Application Submitted Successfully!
-                </p>
-                <p className="mt-1 text-xs leading-5 text-emerald-800">
-                  Your enrollment inquiry has been securely sent to the UniFlow Marketing Department.
-                  Our admissions counseling team will contact you shortly via email and phone.
-                </p>
+            <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/80 p-5">
+              <div className="flex gap-3">
+                <CheckCircle2 className="shrink-0 text-emerald-700 mt-0.5" size={24} />
+                <div className="space-y-1">
+                  <p className="text-base font-bold text-emerald-950">
+                    Application Submitted Successfully!
+                  </p>
+                  <p className="text-xs leading-5 text-emerald-800">
+                    Your enrollment inquiry has been securely delivered to the IJSE Marketing & Admissions Department.
+                    Our counselors will review your application and reach out to you directly.
+                  </p>
+                  {submittedRef && (
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 border border-emerald-200 text-xs font-bold text-emerald-900 shadow-xs">
+                      <span>Application Reference:</span>
+                      <span className="font-mono text-emerald-700 text-sm tracking-wider">{submittedRef}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

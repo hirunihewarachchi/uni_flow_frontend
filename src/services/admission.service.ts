@@ -4,7 +4,13 @@ export interface AdmissionInquiry {
     fullName: string;
     email: string;
     phone: string;
-    programInterest: string;
+    dateOfBirth?: string;
+    address?: string;
+    courseCode?: string;
+    programInterest?: string;
+    preferredIntake?: string;
+    qualification?: string;
+    statement?: string;
     branchPreference?: string;
     message?: string;
 }
