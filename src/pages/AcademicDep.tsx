@@ -52,86 +52,15 @@ type Student = {
   status: "PRESENT" | "ABSENT" | "LATE";
 };
 
-const initialBatches: Batch[] = [
-  {
-    id: 1,
-    name: "GDSE 75",
-    course: "Graduate Diploma in Software Engineering",
-    startDate: "2026-01-15",
-    endDate: "2027-07-15",
-    students: 45,
-    status: "ACTIVE",
-  },
-  {
-    id: 2,
-    name: "GDSE 76",
-    course: "Graduate Diploma in Software Engineering",
-    startDate: "2026-05-10",
-    endDate: "2027-11-10",
-    students: 38,
-    status: "ACTIVE",
-  },
-  {
-    id: 3,
-    name: "CMJD 110",
-    course: "Comprehensive Master in Java Development",
-    startDate: "2026-12-01",
-    endDate: "2027-06-01",
-    students: 0,
-    status: "UPCOMING",
-  },
-];
-
-const initialLectures: Lecture[] = [
-  {
-    id: 1,
-    batch: "GDSE 75",
-    subject: "Advanced React",
-    lecturer: "Kasun Perera",
-    date: "2026-11-16",
-    startTime: "09:00",
-    endTime: "12:00",
-    room: "Lab 01",
-  },
-  {
-    id: 2,
-    batch: "GDSE 75",
-    subject: "Database Management",
-    lecturer: "Nuwan Silva",
-    date: "2026-11-16",
-    startTime: "13:00",
-    endTime: "16:00",
-    room: "Hall 02",
-  },
-  {
-    id: 3,
-    batch: "GDSE 76",
-    subject: "Java Programming",
-    lecturer: "Tharindu Fernando",
-    date: "2026-11-17",
-    startTime: "09:00",
-    endTime: "12:00",
-    room: "Lab 02",
-  },
-];
-
-const initialStudents: Student[] = [
-  { id: 1, name: "Hiruni Hewaarachchi", studentId: "IJSE-001", status: "PRESENT" },
-  { id: 2, name: "Amal Perera", studentId: "IJSE-002", status: "PRESENT" },
-  { id: 3, name: "Nethmi Silva", studentId: "IJSE-003", status: "ABSENT" },
-  { id: 4, name: "Kavindu Fernando", studentId: "IJSE-004", status: "LATE" },
-  { id: 5, name: "Tharushi Jayasinghe", studentId: "IJSE-005", status: "PRESENT" },
-];
-
 function AcademicDep() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [batches, setBatches] = useState<Batch[]>(initialBatches);
-  const [lectures, setLectures] = useState<Lecture[]>(initialLectures);
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [lectures, setLectures] = useState<Lecture[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [showLectureModal, setShowLectureModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedBatch, setSelectedBatch] = useState("HDSE-75");
+  const [selectedBatch, setSelectedBatch] = useState("");
   const [attendanceMsg, setAttendanceMsg] = useState("");
 
   const [batchForm, setBatchForm] = useState({
@@ -142,7 +71,7 @@ function AcademicDep() {
   });
 
   const [lectureForm, setLectureForm] = useState({
-    batch: "HDSE-75",
+    batch: "",
     subject: "",
     lecturer: "Mr. Niroth Samarawickrama",
     date: "",
@@ -166,8 +95,9 @@ function AcademicDep() {
         getLectures(),
       ]);
 
-      if (batchRes.status === "fulfilled" && batchRes.value?.length) {
-        const mappedBatches: Batch[] = batchRes.value.map((b: any, idx: number) => ({
+      let loadedBatches: Batch[] = [];
+      if (batchRes.status === "fulfilled" && Array.isArray(batchRes.value)) {
+        loadedBatches = batchRes.value.map((b: any, idx: number) => ({
           id: idx + 1,
           name: b.batchNumber,
           course: b.courseName || b.courseCode,
@@ -176,22 +106,26 @@ function AcademicDep() {
           students: 0,
           status: b.status === "ACTIVE" ? "ACTIVE" : "UPCOMING",
         }));
-        setBatches(mappedBatches);
-        if (mappedBatches.length > 0 && !selectedBatch) {
-          setSelectedBatch(mappedBatches[0].name);
+        setBatches(loadedBatches);
+        if (loadedBatches.length > 0) {
+          setSelectedBatch((prev) => prev || loadedBatches[0].name);
+          setLectureForm((prev) => ({
+            ...prev,
+            batch: prev.batch || loadedBatches[0].name
+          }));
         }
       }
 
-      if (lecRes.status === "fulfilled" && lecRes.value?.length) {
+      if (lecRes.status === "fulfilled" && Array.isArray(lecRes.value)) {
         const mappedLectures: Lecture[] = lecRes.value.map((l: any, idx: number) => ({
           id: idx + 1,
           batch: l.batchNumber,
-          subject: l.moduleName || l.moduleCode,
-          lecturer: l.lecturerName,
+          subject: l.subject || l.moduleName || l.moduleCode,
+          lecturer: l.lecturer || l.lecturerName,
           date: l.date,
           startTime: l.startTime,
           endTime: l.endTime,
-          room: l.hallNumber,
+          room: l.room || l.hallNumber,
         }));
         setLectures(mappedLectures);
       }
@@ -261,6 +195,11 @@ function AcademicDep() {
       };
 
       setBatches([newBatch, ...batches]);
+      setSelectedBatch((prev) => prev || newBatch.name);
+      setLectureForm((prev) => ({
+        ...prev,
+        batch: prev.batch || newBatch.name
+      }));
       setShowBatchModal(false);
       setBatchForm({
         name: "",
@@ -276,10 +215,16 @@ function AcademicDep() {
   const addLecture = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const targetBatch = lectureForm.batch || selectedBatch || (batches[0]?.name || "");
+    if (!targetBatch) {
+      alert("Please select or create a batch first.");
+      return;
+    }
+
     try {
       await createLecture({
-        batchNumber: lectureForm.batch,
-        courseCode: lectureForm.batch.startsWith("CMJD") ? "CMJD" : "HDSE",
+        batchNumber: targetBatch,
+        courseCode: targetBatch.startsWith("CMJD") ? "CMJD" : "HDSE",
         moduleCode: "PRF",
         moduleName: lectureForm.subject,
         lecturerId: "60c72b2f9b1d8b2bad000001",
@@ -292,7 +237,7 @@ function AcademicDep() {
 
       const newLecture: Lecture = {
         id: Date.now(),
-        batch: lectureForm.batch,
+        batch: targetBatch,
         subject: lectureForm.subject,
         lecturer: lectureForm.lecturer,
         date: lectureForm.date,
@@ -304,7 +249,7 @@ function AcademicDep() {
       setLectures([newLecture, ...lectures]);
       setShowLectureModal(false);
       setLectureForm({
-        batch: selectedBatch || "HDSE-75",
+        batch: selectedBatch || (batches[0]?.name || ""),
         subject: "",
         lecturer: "Mr. Niroth Samarawickrama",
         date: "",
@@ -386,7 +331,13 @@ function AcademicDep() {
 
         <div className="flex gap-3">
           <button
-            onClick={() => setShowLectureModal(true)}
+            onClick={() => {
+              setLectureForm((prev) => ({
+                ...prev,
+                batch: prev.batch || selectedBatch || (batches[0]?.name || ""),
+              }));
+              setShowLectureModal(true);
+            }}
             className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
             <CalendarDays size={17} />
@@ -488,33 +439,39 @@ function AcademicDep() {
               </div>
 
               <div className="space-y-4">
-                {batches.slice(0, 4).map((batch) => (
-                  <div
-                    key={batch.id}
-                    className="flex items-center justify-between gap-3 border-b border-gray-100 pb-4 last:border-0"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {batch.name}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {batch.course}
-                      </p>
+                {batches.length === 0 ? (
+                  <p className="p-4 text-center text-sm text-gray-500">
+                    No batches created yet. Click 'Create Batch' to get started.
+                  </p>
+                ) : (
+                  batches.slice(0, 4).map((batch) => (
+                    <div
+                      key={batch.id}
+                      className="flex items-center justify-between gap-3 border-b border-gray-100 pb-4 last:border-0"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {batch.name}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {batch.course}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle(
+                            batch.status
+                          )}`}
+                        >
+                          {batch.status}
+                        </span>
+                        <p className="mt-2 text-xs text-gray-500">
+                          {batch.students} Students
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle(
-                          batch.status
-                        )}`}
-                      >
-                        {batch.status}
-                      </span>
-                      <p className="mt-2 text-xs text-gray-500">
-                        {batch.students} Students
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
 
@@ -530,27 +487,33 @@ function AcademicDep() {
               </div>
 
               <div className="space-y-4">
-                {lectures.slice(0, 4).map((lecture) => (
-                  <div
-                    key={lecture.id}
-                    className="flex gap-4 border-b border-gray-100 pb-4 last:border-0"
-                  >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
-                      <CalendarDays size={21} />
+                {lectures.length === 0 ? (
+                  <p className="p-4 text-center text-sm text-gray-500">
+                    No lectures scheduled yet. Click 'Add Lecture' to add one.
+                  </p>
+                ) : (
+                  lectures.slice(0, 4).map((lecture) => (
+                    <div
+                      key={lecture.id}
+                      className="flex gap-4 border-b border-gray-100 pb-4 last:border-0"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                        <CalendarDays size={21} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-900">
+                          {lecture.subject}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {lecture.batch} · {lecture.lecturer}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {lecture.date} · {lecture.startTime} - {lecture.endTime}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-gray-900">
-                        {lecture.subject}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {lecture.batch} · {lecture.lecturer}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {lecture.date} · {lecture.startTime} - {lecture.endTime}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
           </div>
@@ -653,7 +616,13 @@ function AcademicDep() {
               </p>
             </div>
             <button
-              onClick={() => setShowLectureModal(true)}
+              onClick={() => {
+                setLectureForm((prev) => ({
+                  ...prev,
+                  batch: prev.batch || selectedBatch || (batches[0]?.name || ""),
+                }));
+                setShowLectureModal(true);
+              }}
               className="flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white"
             >
               <Plus size={17} /> Add Lecture

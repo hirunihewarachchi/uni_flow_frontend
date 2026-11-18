@@ -29,6 +29,7 @@ import {
   Copy,
   Check,
   Sparkles,
+  Award,
 } from "lucide-react";
 import {
   getStaff,
@@ -51,7 +52,7 @@ type AdminTab =
   | "settings"
   | "activity";
 
-type OfficerRole = "MARKETING" | "ACADEMIC" | "FINANCE";
+type OfficerRole = "MARKETING" | "ACADEMIC" | "FINANCE" | "EXAM";
 
 type Staff = {
   id: string | number;
@@ -103,6 +104,14 @@ const initialStaff: Staff[] = [
     role: "FINANCE",
     phone: "0761234567",
     status: "INACTIVE",
+  },
+  {
+    id: 4,
+    name: "Nuwan Bandara",
+    email: "exam@ijse.lk",
+    role: "EXAM",
+    phone: "0751234567",
+    status: "ACTIVE",
   },
 ];
 
@@ -749,6 +758,11 @@ function Admin() {
                   icon: Wallet,
                   count: staff.filter((s) => s.role === "FINANCE").length,
                 },
+                {
+                  role: "Examination Department",
+                  icon: Award,
+                  count: staff.filter((s) => s.role === "EXAM").length,
+                },
               ].map((department) => {
                 const Icon = department.icon;
 
@@ -834,7 +848,7 @@ function Admin() {
                 Department Officers
               </h2>
               <p className="mt-1 text-sm text-gray-500">
-                Create and manage Marketing, Academic and Finance accounts.
+                Create and manage Marketing, Academic, Finance and Examination accounts.
               </p>
             </div>
             <button type="button" onClick={openNewStaff} className={primaryButton}>
@@ -866,6 +880,7 @@ function Admin() {
                 <option value="MARKETING">Marketing</option>
                 <option value="ACADEMIC">Academic</option>
                 <option value="FINANCE">Finance</option>
+                <option value="EXAM">Examination</option>
               </select>
             </div>
 
@@ -1479,6 +1494,7 @@ function Admin() {
                 <option value="MARKETING">Marketing Officer</option>
                 <option value="ACADEMIC">Academic Officer</option>
                 <option value="FINANCE">Finance Officer</option>
+                <option value="EXAM">Exam Officer</option>
               </select>
             </div>
             {!editingStaff && (

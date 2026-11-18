@@ -4,6 +4,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getApiBaseUrl } from "../services/api";
 
 export type UserRole =
   | "SUPER_ADMIN"
@@ -19,25 +20,35 @@ export type UserRole =
   | "LECTURER"
   | "STUDENT";
 
+export type NormalizedRole =
+  | "STUDENT"
+  | "MARKETING"
+  | "ACADEMIC"
+  | "FINANCE"
+  | "EXAM"
+  | "ADMIN";
+
 export interface AuthUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   role: UserRole;
-  normalizedRole?: "STUDENT" | "MARKETING" | "ACADEMIC" | "FINANCE" | "ADMIN";
+  normalizedRole?: NormalizedRole;
+  batchNumber?: string;
   institutionalId?: string;
   studentId?: string;
   mustChangePassword?: boolean;
 }
 
-export const normalizeRole = (role?: string): "STUDENT" | "MARKETING" | "ACADEMIC" | "FINANCE" | "ADMIN" => {
+export const normalizeRole = (role?: string): NormalizedRole => {
   if (!role) return "STUDENT";
   const upper = role.toUpperCase();
   if (upper.includes("ADMIN")) return "ADMIN";
+  if (upper.includes("EXAM")) return "EXAM";
   if (upper.includes("MARKETING")) return "MARKETING";
   if (upper.includes("FINANCE")) return "FINANCE";
-  if (upper.includes("ACADEMIC") || upper.includes("EXAM") || upper.includes("LECTURER")) return "ACADEMIC";
+  if (upper.includes("ACADEMIC") || upper.includes("LECTURER")) return "ACADEMIC";
   return "STUDENT";
 };
 
@@ -53,8 +64,6 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -85,7 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login using the backend API
   const login = async (email: string, password: string): Promise<AuthUser> => {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -99,8 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(result.message || "Login failed");
     }
 
-    const rawUser = result.data.user;
-    const accessToken = result.data.token as string;
+    const rawUser = result.data?.user || result.user;
+    const accessToken = (result.data?.token || result.token || result.accessToken) as string;
 
     if (!rawUser || !accessToken) {
       throw new Error("Invalid login response from server");

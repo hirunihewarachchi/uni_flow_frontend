@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Users,
   GraduationCap,
@@ -8,8 +9,11 @@ import {
   ArrowUpRight,
   Clock,
   Megaphone,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { getPublicDashboard } from "../services/public.service";
+import { useAuth } from "../hooks/UseAuth";
 
 const defaultStatistics = [
   {
@@ -39,8 +43,11 @@ const defaultStatistics = [
 ];
 
 function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(defaultStatistics);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+
+  const isAdmin = user?.normalizedRole === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 
   useEffect(() => {
     getPublicDashboard()
@@ -75,6 +82,37 @@ function Dashboard() {
           Here's an overview of your university.
         </p>
       </div>
+
+      {/* Admin Quick Access Banner */}
+      {isAdmin && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-white p-5 shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#D71920] text-white shadow-md shadow-red-950/20">
+              <ShieldCheck size={26} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-gray-900">
+                  Administrator Portal Active
+                </h3>
+                <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold text-[#D71920]">
+                  SUPER ADMIN
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-gray-600">
+                You have administrative access to manage staff accounts, courses, announcements, and portal settings.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/admin"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#D71920] px-5 py-3 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 hover:shadow-md"
+          >
+            Open Admin Management
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      )}
 
       {/* Statistics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">

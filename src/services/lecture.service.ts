@@ -1,3 +1,4 @@
+import api from "./api";
 
 export interface LectureSchedule {
     _id: string;
@@ -19,37 +20,13 @@ export interface LectureTimetableData {
     availableBatches?: string[];
 }
 
-const API_URL = (
-    import.meta.env.VITE_API_URL || "http://localhost:3000"
-).replace(/\/$/, "");
-
 export const getLectureTimetable = async (
-    token: string,
+    _token?: string,
     batchNumber?: string
 ): Promise<LectureTimetableData> => {
-    const url = new URL(`${API_URL}/api/v1/lectures/timetable`);
-    if (batchNumber) {
-        url.searchParams.set("batchNumber", batchNumber);
-    }
+    const response = await api.get("/lectures/timetable", {
+        params: batchNumber && batchNumber !== "ALL" ? { batchNumber } : undefined
+    });
 
-    const response = await fetch(
-        url.toString(),
-        {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-        throw new Error(
-            result.message || "Unable to load lecture timetable"
-        );
-    }
-
-    return result.data as LectureTimetableData;
+    return response.data.data;
 };

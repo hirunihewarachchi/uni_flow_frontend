@@ -9,6 +9,7 @@ import {
   LogOut,
   GraduationCap,
   X,
+  Menu,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuth";
@@ -20,9 +21,10 @@ import {
 
 interface NavbarProps {
   onSearch?: (term: string) => void;
+  onToggleSidebar?: () => void;
 }
 
-function Navbar({ onSearch }: NavbarProps) {
+function Navbar({ onSearch, onToggleSidebar }: NavbarProps) {
   const { user, logout } = useAuth();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -67,31 +69,42 @@ function Navbar({ onSearch }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-gray-200/80 bg-white/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
-      {/* Search */}
-      <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 transition-all duration-200 focus-within:border-[#D71920] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(215,25,32,0.08)]">
-        <Search size={19} className="shrink-0 text-gray-400" />
+      {/* Mobile Menu & Search */}
+      <div className="flex flex-1 items-center gap-3 max-w-md">
+        <button
+          onClick={onToggleSidebar}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 lg:hidden shrink-0"
+          aria-label="Toggle navigation"
+        >
+          <Menu size={20} />
+        </button>
 
-        <input
-          type="text"
-          value={searchTerm}
-          placeholder="Search anything..."
-          onChange={(e) => handleSearch(e.target.value)}
-          className="w-full bg-transparent text-sm text-gray-800 outline-none placeholder:text-gray-400"
-        />
+        {/* Search */}
+        <div className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 transition-all duration-200 focus-within:border-[#D71920] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(215,25,32,0.08)]">
+          <Search size={18} className="shrink-0 text-gray-400" />
 
-        {searchTerm && (
-          <button
-            onClick={() => handleSearch("")}
-            className="text-gray-400 transition hover:text-[#D71920]"
-            aria-label="Clear search"
-          >
-            <X size={16} />
-          </button>
-        )}
+          <input
+            type="text"
+            value={searchTerm}
+            placeholder="Search anything..."
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full bg-transparent text-sm text-gray-800 outline-none placeholder:text-gray-400"
+          />
 
-        <span className="hidden rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] font-medium text-gray-400 sm:block">
-          SEARCH
-        </span>
+          {searchTerm && (
+            <button
+              onClick={() => handleSearch("")}
+              className="text-gray-400 transition hover:text-[#D71920]"
+              aria-label="Clear search"
+            >
+              <X size={15} />
+            </button>
+          )}
+
+          <span className="hidden rounded-md border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-400 sm:block">
+            SEARCH
+          </span>
+        </div>
       </div>
 
       {/* Right Actions */}

@@ -113,11 +113,7 @@ function LectureTimetable() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [refreshKey, setRefreshKey] = useState(0);
-    const [availableBatches, setAvailableBatches] = useState<string[]>([
-        "HDSE-75",
-        "HDSE-76",
-        "HDSE-77"
-    ]);
+    const [availableBatches, setAvailableBatches] = useState<string[]>([]);
 
     const isStaffOrAdmin = user?.role && user.role !== "STUDENT";
 
@@ -142,7 +138,7 @@ function LectureTimetable() {
 
                 if (!isMounted) return;
 
-                setBatchNumber(result.batchNumber || "HDSE-75");
+                setBatchNumber(result.batchNumber || (user?.batchNumber || ""));
                 setLectures(result.lectures || []);
                 if (result.availableBatches?.length) {
                     setAvailableBatches(result.availableBatches);

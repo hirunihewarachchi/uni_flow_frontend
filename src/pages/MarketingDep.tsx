@@ -46,77 +46,14 @@ interface EnrollmentRequest {
   status: "Pending" | "Approved" | "Rejected";
 }
 
-const batches = [
-  { id: "HDSE-75", course: "HDSE" },
-  { id: "HDSE-76", course: "HDSE" },
-  { id: "HDSE-77", course: "HDSE" },
-  { id: "CMJD-01", course: "CMJD" },
-  { id: "CAME-01", course: "CAME" },
-  { id: "FOUNDATION-01", course: "Foundation" },
-];
-
-const initialStudents: Student[] = [
-  {
-    id: "IJSE-001",
-    name: "Kasun Perera",
-    email: "kasun@example.com",
-    phone: "0771234567",
-    course: "HDSE",
-    batch: "HDSE-75",
-    registeredDate: "2026-11-10",
-    status: "Active",
-  },
-  {
-    id: "IJSE-002",
-    name: "Nethmi Silva",
-    email: "nethmi@example.com",
-    phone: "0711234567",
-    course: "HDSE",
-    batch: "HDSE-76",
-    registeredDate: "2026-11-11",
-    status: "Active",
-  },
-  {
-    id: "IJSE-003",
-    name: "Amal Fernando",
-    email: "amal@example.com",
-    phone: "0761234567",
-    course: "CMJD",
-    batch: "CMJD-01",
-    registeredDate: "2026-11-12",
-    status: "Pending",
-  },
-];
-
-const initialRequests: EnrollmentRequest[] = [
-  {
-    id: "ENQ-001",
-    name: "Tharushi Jayawardena",
-    email: "tharushi@example.com",
-    phone: "0774567890",
-    course: "HDSE",
-    date: "2026-11-13",
-    status: "Pending",
-  },
-  {
-    id: "ENQ-002",
-    name: "Ravindu Perera",
-    email: "ravindu@example.com",
-    phone: "0714567890",
-    course: "CMJD",
-    date: "2026-11-14",
-    status: "Pending",
-  },
-];
-
 const inputClass =
   "w-full rounded-lg border border-[#E5E5E5] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#D71920] focus:ring-2 focus:ring-[#D71920]/10";
 
 function Marketing() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const [students, setStudents] = useState<Student[]>(initialStudents);
-  const [requests, setRequests] = useState<EnrollmentRequest[]>(initialRequests);
-  const [batchList, setBatchList] = useState(batches);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [requests, setRequests] = useState<EnrollmentRequest[]>([]);
+  const [batchList, setBatchList] = useState<{ id: string; course: string }[]>([]);
   const [search, setSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("All");
   const [selectedRequest, setSelectedRequest] =
@@ -128,7 +65,8 @@ function Marketing() {
     email: "",
     phone: "",
     course: "HDSE",
-    batch: "HDSE-75",
+    batch: "",
+    password: "",
   });
 
   const [message, setMessage] = useState("");
@@ -181,7 +119,13 @@ function Marketing() {
           id: b.batchNumber,
           course: b.courseCode,
         }));
-        if (mappedBatches.length > 0) setBatchList(mappedBatches);
+        setBatchList(mappedBatches);
+        if (mappedBatches.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            batch: prev.batch || mappedBatches[0].id
+          }));
+        }
       }
     } catch (e) {}
   };
@@ -191,8 +135,13 @@ function Marketing() {
   }, []);
 
   const filteredBatches = batchList.filter(
-    (batch) => !form.course || batch.course.toUpperCase() === form.course.toUpperCase()
+    (batch) =>
+      !form.course ||
+      !batch.course ||
+      batch.course.toUpperCase() === form.course.toUpperCase() ||
+      batch.id.toUpperCase().startsWith(form.course.toUpperCase())
   );
+  const displayBatches = filteredBatches.length > 0 ? filteredBatches : batchList;
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
@@ -243,10 +192,12 @@ function Marketing() {
         batchNumber: form.batch,
         totalCourseFee: 250000,
         initialPayment: 50000,
+        password: form.password.trim() || undefined,
       });
 
-      if (res.data?.credentials) {
-        setCreatedCredentials(res.data.credentials);
+      const creds = res.data?.credentials || (res as any).credentials;
+      if (creds) {
+        setCreatedCredentials(creds);
       }
 
       setMessage(
@@ -260,6 +211,7 @@ function Marketing() {
         phone: "",
         course: "HDSE",
         batch: "HDSE-75",
+        password: "",
       });
 
       fetchAllData();
@@ -378,7 +330,7 @@ function Marketing() {
             />
             <StatCard
               title="Active Batches"
-              value={batches.length}
+              value={batchList.length}
               icon={GraduationCap}
               description="Available batches"
             />
@@ -596,12 +548,28 @@ function Marketing() {
                     }
                   >
                     <option value="">Choose an existing batch</option>
-                    {filteredBatches.map((batch) => (
-                      <option key={batch.id} value={batch.id}>
-                        {batch.id}
-                      </option>
-                    ))}
+                    {batchList.length === 0 ? (
+                      <option value="" disabled>No batches available - Academic Officer must create batches</option>
+                    ) : (
+                      displayBatches.map((batch) => (
+                        <option key={batch.id} value={batch.id}>
+                          {batch.id}
+                        </option>
+                      ))
+                    )}
                   </select>
+                </FormField>
+
+                <FormField label="Initial Password (Optional)">
+                  <input
+                    type="text"
+                    className={inputClass}
+                    placeholder="Leave blank for student ID / student123"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                  />
                 </FormField>
               </div>
 
@@ -622,6 +590,7 @@ function Marketing() {
                       phone: "",
                       course: "",
                       batch: "",
+                      password: "",
                     });
                     setMessage("");
                   }}
@@ -901,6 +870,7 @@ function Marketing() {
                     phone: selectedRequest.phone,
                     course: selectedRequest.course,
                     batch: "",
+                    password: "",
                   });
                   setSelectedRequest(null);
                   setActiveTab("register");

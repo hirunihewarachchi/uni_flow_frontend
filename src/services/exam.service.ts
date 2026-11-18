@@ -2,18 +2,24 @@ import api from "./api";
 
 export const getExamTimetable = async (params?: { batchNumber?: string; courseCode?: string }) => {
     const response = await api.get("/examinations/timetable", { params });
-    return response.data.data;
+    return response.data;
 };
 
 export const createExamSchedule = async (data: {
     batchNumber: string;
-    courseCode: string;
-    moduleCode: string;
-    moduleName: string;
+    subject?: string;
+    courseCode?: string;
+    moduleCode?: string;
+    moduleName?: string;
     date: string;
-    time: string;
-    hall: string;
-    type: string;
+    startTime?: string;
+    endTime?: string;
+    time?: string;
+    venue?: string;
+    hall?: string;
+    examType?: string;
+    type?: string;
+    duration?: string;
     maxMarks?: number;
 }) => {
     const response = await api.post("/examinations/timetable", data);
@@ -21,12 +27,26 @@ export const createExamSchedule = async (data: {
 };
 
 export const enterMarks = async (data: {
-    examinationId: string;
-    marks: Array<{
+    examinationId?: string;
+    batchNumber?: string;
+    subject?: string;
+    moduleCode?: string;
+    semester?: string;
+    examType?: string;
+    examDate?: string;
+    publish?: boolean;
+    records?: Array<{
         studentId: string;
         studentName: string;
-        score: number;
+        marks: number;
     }>;
+    marks?: Array<{
+        studentId: string;
+        studentName: string;
+        score?: number;
+        marks?: number;
+    }>;
+    [key: string]: any;
 }) => {
     const response = await api.post("/examinations/marks", data);
     return response.data;

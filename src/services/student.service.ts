@@ -12,6 +12,7 @@ export interface StudentRegistrationPayload {
     batchNumber: string; // e.g. "HDSE-75"
     totalCourseFee?: number;
     initialPayment?: number;
+    password?: string;
 }
 
 export const registerStudentByMarketing = async (data: StudentRegistrationPayload) => {

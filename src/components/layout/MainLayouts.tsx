@@ -8,6 +8,7 @@ import { KeyRound, ShieldAlert } from "lucide-react";
 
 function MainLayouts() {
   const { user, updateCurrentUser } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // First login password change modal state
   const [newPassword, setNewPassword] = useState("");
@@ -45,22 +46,24 @@ function MainLayouts() {
       {/* Sidebar with connected user session */}
       <Sidebar
         isAuthenticated={!!user}
-        userRole={user?.normalizedRole || null}
+        userRole={user?.normalizedRole || user?.role || null}
         userName={user ? `${user.firstName} ${user.lastName}` : "IJSE Member"}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Main Section */}
-      <div className="ml-64 flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen flex-1 flex-col transition-all duration-300 lg:ml-64">
         {/* Navbar */}
-        <Navbar />
+        <Navbar onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
         {/* Page Content */}
-        <main className="mx-auto w-full max-w-[1600px] flex-1 px-8 py-8">
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <Outlet />
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-[#E5E5E5] bg-white px-8 py-5">
+        <footer className="border-t border-[#E5E5E5] bg-white px-4 py-4 sm:px-8 sm:py-5">
           <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
             <p className="text-xs text-[#737373]">
               © 2026 <span className="font-bold text-[#171717]">IJSE</span>.
